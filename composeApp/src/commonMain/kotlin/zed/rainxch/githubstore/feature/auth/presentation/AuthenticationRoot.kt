@@ -1,16 +1,17 @@
 package zed.rainxch.githubstore.feature.auth.presentation
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,63 +53,55 @@ fun AuthenticationScreen(
     state: AuthenticationState,
     onAction: (AuthenticationAction) -> Unit,
 ) {
-    Surface(
+    Scaffold(
         modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
+        containerColor = MaterialTheme.colorScheme.background
+    ) { innerPadding ->
         Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
         ) {
-            when (val s = state) {
-                is AuthenticationState.LoggedOut -> {
-                    Text("Welcome to GitHub Store", style = MaterialTheme.typography.titleLarge)
-                    Spacer(Modifier.height(16.dp))
-                    Button(
-                        onClick = {
-                            onAction(AuthenticationAction.StartLogin("read:user repo"))
-                        }
-                    ) {
-                        Text("Sign in with GitHub")
-                    }
+            when (val authState = state.loginState) {
+                is AuthLoginState.LoggedOut -> {
+
                 }
 
-                is AuthenticationState.DevicePrompt -> {
-                    var copied by remember { mutableStateOf(s.copied) }
+                is AuthLoginState.DevicePrompt -> {
+                    var copied by remember { mutableStateOf(authState.copied) }
                     Text("Enter this code on GitHub:")
                     Spacer(Modifier.height(8.dp))
                     SelectionContainer {
-                        Text(s.start.userCode, style = MaterialTheme.typography.headlineMedium)
+                        Text(authState.start.userCode, style = MaterialTheme.typography.headlineMedium)
                     }
                     Spacer(Modifier.height(8.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Button(onClick = {
-                            onAction(AuthenticationAction.CopyCode(s.start))
+                            onAction(AuthenticationAction.CopyCode(authState.start))
                             copied = true
                         }) { Text(if (copied) "Copied" else "Copy code") }
                         Spacer(Modifier.height(0.dp))
                     }
                     Spacer(Modifier.height(16.dp))
                     Button(onClick = {
-                        onAction(AuthenticationAction.OpenGitHub(s.start))
+                        onAction(AuthenticationAction.OpenGitHub(authState.start))
                     }) { Text("Open GitHub") }
                 }
 
-                is AuthenticationState.Pending -> {
+                is AuthLoginState.Pending -> {
                     CircularProgressIndicator()
                     Spacer(Modifier.height(12.dp))
                     Text("Waiting for authorization...")
                 }
 
-                is AuthenticationState.LoggedIn -> {
+                is AuthLoginState.LoggedIn -> {
                     Text("Signed in!", style = MaterialTheme.typography.titleLarge)
                     Spacer(Modifier.height(8.dp))
                     Text("You can now use the app.")
                 }
 
-                is AuthenticationState.Error -> {
-                    Text("Error: ${s.message}", color = MaterialTheme.colorScheme.error)
+                is AuthLoginState.Error -> {
+                    Text("Error: ${authState.message}", color = MaterialTheme.colorScheme.error)
                     Spacer(Modifier.height(12.dp))
                     Button(onClick = { onAction(AuthenticationAction.StartLogin("read:user repo")) }) {
                         Text(
@@ -126,7 +119,7 @@ fun AuthenticationScreen(
 private fun Preview() {
     GithubStoreTheme {
         AuthenticationScreen(
-            state = AuthenticationState.LoggedOut,
+            state = AuthenticationState(),
             onAction = {}
         )
     }
