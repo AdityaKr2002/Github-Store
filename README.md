@@ -4,125 +4,184 @@
 
 </div>
 
-<h1 align="center">Github-Store</h1>
+<h1 align="center">GithubStore</h1>
 
 <p align="center">
   <a href="https://opensource.org/licenses/Apache-2.0"><img alt="License" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg"/></a>
-  <a href="https://github.com/XDdevv/Github-Store/releases"><img alt="Download" src="https://img.shields.io/github/v/release/XDdevv/Github-Store.svg?logo=github"/></a>
-  <a href="https://android-arsenal.com/api?level=24"><img alt="API" src="https://img.shields.io/badge/API-24%2B-brightgreen.svg?style=flat"/></a>
+  <a href="https://kotlinlang.org"><img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-Multiplatform-7F52FF.svg"/></a>
+  <a href="#"><img alt="Platforms" src="https://img.shields.io/badge/Platforms-Android%20%7C%20Desktop-brightgreen"/></a>
 </p>
 
 <p align="center">
-A modern Multiplatform Open-source “Play Market” for GitHub.<br>
-🚀 Discover, browse, and install open-source apps and tools directly from GitHub releases — for Android & Desktop.<br>
+GithubStore is a cross‑platform “play store” for GitHub releases.  
+It discovers repositories that ship real installable binaries and lets you install the latest release in one click.
 </p>
 
----
-
 <!-- <p align="center">
-<img src="previews/hero.png" width="90%"/>
+  <img src="docs/preview-home.png" width="360"/>
+  <img src="docs/preview-details.png" width="360"/>
 </p> -->
 
 ---
 
-## Features
+## ✨ What is GithubStore?
 
-- ✨ **Trending & Most Starred:** Home showcases hot repos (with releases!) by stars or trending.
-- 🔎 **Fast Search:** By name, description, or README (only shows repos with installable releases).
-- 📦 **Easy Install:** Installs APK, EXE, DMG, ZIP, etc. straight from open source releases.
-- 📑 **Detailed Repo Pages:** See description, release changelogs, stars, forks, contributors, and developer info.
-- 🔐 **GitHub Login:** Auth for starring and boosting API limits (optional for browsing).
-- 🌙 **Beautiful UI:** Material 3, light & dark themes, responsive multiplatform layouts.
-- 💻 **Multiplatform:** Native support for Android and Desktop (Windows/macOS/Linux).
+GithubStore is a Kotlin Multiplatform app (Android + Desktop) that turns GitHub releases into a clean, app‑store style experience:
 
----
+- Only shows repositories that actually provide installable assets (APK, EXE, DMG, etc.).
+- Detects your platform and surfaces the correct installer.
+- Always installs from the **latest published release** and highlights its changelog.
+- Presents a polished details screen with stats, README, and developer info.
 
-<!-- Screenshots -->
-
-<!-- <p align="center">
-  <img src="previews/screens-home.png" width="40%"/>
-  <img src="previews/screens-details.png" width="40%"/>
-</p> -->
+The repository is currently private while the core is being stabilized, but it will be public and fully open source under the Apache 2.0 license very soon.
 
 ---
 
-## Download
+## 🚀 Features
 
-- Grab the latest [Android APK/Desktop package](https://github.com/XDdevv/Github-Store/releases) and start exploring open source gems!
+- **Smart discovery**
+  - Home sections for “Popular”, “Recently Updated”, and “New” projects.
+  - Only repos with valid installable assets are shown.
+  - Platform‑aware topic scoring so Android/desktop users see relevant apps first.
+
+- **Latest‑release installs**
+  - Fetches `/releases/latest` for each repo.
+  - Shows only assets from the latest release.
+  - Single “Install latest” action, plus an expandable list of all installers for that release.
+
+- **Rich details screen**
+  - App name, version, “Install latest” button.
+  - Stars, forks, open issues, contributors.
+  - Rendered README content (“About this app”).
+  - Latest release notes (body) with markdown formatting.
+  - List of installers with platform labels and file sizes.
+
+- **Cross‑platform UX**
+  - Android: opens APK downloads and hands off to the package installer.
+  - Desktop (Windows/macOS/Linux): downloads to a configurable location and opens the file.
+
+- **GitHub login & rate‑limit friendly**
+  - Sign‑in with GitHub to use the user’s own 5,000 req/hour quota.
+  
+---
+
+## 🔍 How does my app appear in GithubStore?
+
+GithubStore does not use any private indexing or manual curation rules.  
+Your project can appear automatically if it follows these conditions:
+
+1. **Public repository on GitHub**
+   - Visibility must be `public`.
+
+2. **At least one published release**
+   - Created via GitHub Releases (not only tags).
+   - The latest release must not be a draft or prerelease.
+
+3. **Installable assets in the latest release**
+   - The latest release must contain at least one asset file with a supported extension:
+     - Android: `.apk`
+     - Windows: `.exe`, `.msi`
+     - macOS: `.dmg`, `.pkg`
+     - Linux: `.deb`, `.rpm`
+   - GithubStore ignores GitHub’s auto‑generated source artifacts (`Source code (zip)` / `Source code (tar.gz)`).
+
+4. **Discoverable by search / topics**
+   - Repositories are fetched via the public GitHub Search API.
+   - Topic, language, and description help the ranking:
+     - Android apps: topics like `android`, `mobile`, `apk`.
+     - Desktop apps: topics like `desktop`, `gui`, `app`, `compose-desktop`, `electron`.
+   - Having at least a few stars makes it more likely to appear under Popular/Updated/New sections.
+
+If your repo meets these conditions, GithubStore can find it through search and show it automatically—no manual submission required.
 
 ---
 
-## Tech Stack & Open-Source Libraries
+## 🧭 How GithubStore works (high‑level)
 
-- **Kotlin Multiplatform (KMP)** — shared logic for Android and Desktop
-- **Jetpack Compose / Compose Multiplatform** — UI for Android, Windows, macOS, Linux
-- **Ktor / OkHttp** — Modern HTTP & API client
-- **GitHub REST API** — Search, Releases, README, Auth
-- **Material 3** — Clean, modern UI
-- **Others:** Accompanist, kotlinx.serialization, Coil (image loading), etc.
+1. **Search**
+   - Uses GitHub’s `/search/repositories` endpoint with platform‑aware queries.
+   - Applies simple scoring based on topics, language, and description.
+   - Filters out archived repos and those with too few signals.
 
----
+2. **Release + asset check**
+   - For candidate repos, calls `/repos/{owner}/{repo}/releases/latest`.
+   - Checks the `assets` array for platform‑specific file extensions.
+   - If no suitable asset is found, the repo is excluded from results.
 
-## Architecture
+3. **Details screen**
+   - Repository info: name, owner, description, stars, forks, issues, contributors.
+   - Latest release: tag, published date, body (changelog), assets.
+   - README: loaded from the default branch and rendered as “About this app”.
 
-- **Clean Architecture** layered: Domain, Data, Presentation
-- **Unidirectional Data Flow** with State Management (ViewModels/shared logic)
-- **Open API:** Pure GitHub REST API, no backend required!
-
----
-
-## Getting Started
-
-Clone this repo
-git clone https://github.com/XDdevv/Github-Store.git
-cd Github-Store
-
-Open with Android Studio (Giraffe+) for multiplatform builds!
-
-
-- Run on Android: Select your device/emulator.
-- Run Desktop: Select the desktop run target, or run `./gradlew run` from terminal.
-
-Set your **GitHub OAuth App keys** in `local.properties` or as secrets in your CI for authentication.
+4. **Install flow**
+   - When the user taps “Install latest”:
+     - Picks the best matching asset for the current platform.
+     - Streams the download.
+     - Delegates to the OS installer (APK installer on Android, default handler on desktop).
 
 ---
 
-## Roadmap
+## 🧱 Tech stack
 
-- [ ] Home, trending & most-starred repositories
-- [ ] Search by name, description, readme
-- [ ] Repo details with install options
-- [ ] Auth via GitHub (deep link/callback)
-- [ ] Stars, forks, developer profile
-- [ ] Download managers, install progress
-- [ ] (Planned) Recommendations, notifications
+- **Language & Platform**
+  - Kotlin Multiplatform (Android + JVM Desktop)
+  - Compose Multiplatform UI
 
-Contributions & feedback welcome! See [CONTRIBUTING.md](CONTRIBUTING.md).
+- **Networking & Data**
+  - Ktor `HttpClient` for GitHub REST API.
+  - kotlinx.serialization for JSON models.
+  - Kotlinx.coroutines + Flow for async + streaming search results.
 
----
+- **Architecture**
+  - Clean modular design with `core` (domain/models) and feature modules.
+  - Repository pattern for data access.
+  - ViewModel/state holder per screen (platform‑specific wrapper around shared logic).
 
-## License
-
-```
-Designed and developed by 2025 rainxchzed / Usmon
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-```
----
-
-**Find this project useful?**  
-🌟 **Star this repo** and [follow me](https://github.com/XDdevv) for more open source tools!
+- **Auth & Deep‑links**
+  - GitHub OAuth (Device Code flow).
 
 ---
 
-_**Not affiliated with GitHub or Google. This is an independent, open source app store for GitHub releases—by developers, for developers.**_
+## ✅ Pros / Why use GithubStore?
+
+- **No more hunting through GitHub releases**  
+  See only repos that actually ship binaries for your platform.
+
+- **Always the latest release**  
+  Installs are guaranteed to come from the latest published release; the changelog you see is exactly what you’re installing.
+
+- **Uniform experience across platforms**  
+  Same UI and logic for Android and desktop, with platform‑native install behavior.
+
+- **Open source & extensible**  
+  Written in KMP with a clear separation between networking, domain logic, and UI—easy to fork, extend, or adapt.
+
+---
+
+## 📦 Getting started (WIP)
+
+> The repository is currently private while the core is being finalized.  
+> Once it goes public, this section will include:
+> - Installation instructions for Android APK and desktop builds.
+> - Instructions for building from source.
+> - Contribution guidelines and issue templates.
+
+---
+
+## 🤝 Contributing
+
+Planned contribution areas once the repo is public:
+
+- New platform heuristics (better detection via topics/languages).
+- Additional asset type support.
+- Improved search filters and ranking.
+- UI/UX enhancements, accessibility, and localization.
+
+Issues and pull requests will be very welcome once the repository is open.
+
+---
+
+## 📄 License
+
+GithubStore will be released under the **Apache License, Version 2.0**.
+
