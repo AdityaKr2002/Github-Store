@@ -42,6 +42,7 @@ import zed.rainxch.githubstore.feature.details.presentation.components.sections.
 import zed.rainxch.githubstore.feature.details.presentation.components.sections.whatsNew
 import zed.rainxch.githubstore.feature.details.presentation.components.states.ErrorState
 import zed.rainxch.githubstore.feature.details.presentation.utils.LocalTopbarLiquidState
+import zed.rainxch.githubstore.feature.details.presentation.utils.isLiquidTopbarEnabled
 
 @Composable
 fun DetailsRoot(
@@ -125,13 +126,21 @@ fun DetailsScreen(
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent
                     ),
-                    modifier = Modifier.liquid(liquidTopbarState) {
-                        this.shape = CutCornerShape(0.dp)
-                        this.frost = 8.dp
-                    }
+                    modifier = Modifier.then(
+                        if (isLiquidTopbarEnabled()) {
+                            Modifier.liquid(liquidTopbarState) {
+                                this.shape = CutCornerShape(0.dp)
+                                this.frost = 8.dp
+                                this.curve = .4f
+                                this.refraction = .1f
+                                this.dispersion = .2f
+                            }
+                        } else Modifier
+                    )
                 )
             },
-            containerColor = MaterialTheme.colorScheme.background
+            containerColor = MaterialTheme.colorScheme.background,
+            modifier = Modifier.liquefiable(liquidTopbarState)
         ) { innerPadding ->
 
             if (state.isLoading) {
@@ -154,6 +163,7 @@ fun DetailsScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
+                    .liquefiable(liquidTopbarState)
                     .padding(innerPadding),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
