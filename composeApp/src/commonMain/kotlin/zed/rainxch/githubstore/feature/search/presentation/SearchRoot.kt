@@ -312,7 +312,7 @@ fun SearchScreen(
                 if (state.repositories.isNotEmpty()) {
                     LazyVerticalStaggeredGrid(
                         state = listState,
-                        columns = StaggeredGridCells.Adaptive(400.dp),
+                        columns = StaggeredGridCells.Adaptive(350.dp),
                         verticalItemSpacing = 12.dp,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
