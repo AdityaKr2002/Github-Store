@@ -15,10 +15,16 @@ import zed.rainxch.githubstore.core.presentation.theme.slateGrayLight
 
 enum class AppTheme(
     val displayName: String,
-    val lightScheme: ColorScheme,
-    val darkScheme: ColorScheme,
-    val primaryColor: Color
+    val lightScheme: ColorScheme?,
+    val darkScheme: ColorScheme?,
+    val primaryColor: Color?
 ) {
+    DYNAMIC(
+        displayName = "Dynamic",
+        lightScheme = null,
+        darkScheme = null,
+        primaryColor = null
+    ),
     OCEAN(
         displayName = "Ocean",
         lightScheme = oceanBlueLight,

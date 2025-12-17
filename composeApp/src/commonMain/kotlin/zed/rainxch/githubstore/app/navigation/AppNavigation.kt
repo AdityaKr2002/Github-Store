@@ -5,9 +5,11 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
@@ -140,6 +142,7 @@ fun AppNavigation(
                 targetOffsetX = { it },
                 animationSpec = spring(Spring.DampingRatioLowBouncy)
             )
-        }
+        },
+        modifier = Modifier.background(MaterialTheme.colorScheme.background)
     )
 }

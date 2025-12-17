@@ -1,6 +1,7 @@
 package zed.rainxch.githubstore.feature.settings.presentation.components.sections
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import zed.rainxch.githubstore.core.presentation.model.AppTheme
+import zed.rainxch.githubstore.core.presentation.theme.isDynamicColorAvailable
 import zed.rainxch.githubstore.feature.settings.presentation.SettingsAction
 
 fun LazyListScope.appearance(
@@ -69,7 +71,13 @@ fun LazyListScope.appearance(
                     horizontalArrangement = Arrangement.spacedBy(20.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    items(AppTheme.entries) { theme ->
+                    val availableThemes = if (isDynamicColorAvailable()) {
+                        AppTheme.entries
+                    } else {
+                        AppTheme.entries.filter { it != AppTheme.DYNAMIC }
+                    }
+
+                    items(availableThemes) { theme ->
                         Column(
                             modifier = Modifier
                                 .clickable(onClick = {
@@ -82,10 +90,21 @@ fun LazyListScope.appearance(
                                 Modifier
                                     .size(50.dp)
                                     .clip(CircleShape)
-                                    .background(theme.primaryColor),
+                                    .background(
+                                        theme.primaryColor ?: MaterialTheme.colorScheme.primary
+                                    )
+                                    .then(
+                                        if (theme == AppTheme.DYNAMIC) {
+                                            Modifier.border(
+                                                2.dp,
+                                                MaterialTheme.colorScheme.outline,
+                                                CircleShape
+                                            )
+                                        } else Modifier
+                                    ),
                                 contentAlignment = Alignment.Center
                             ) {
-                                if(selectedThemeColor == theme) {
+                                if (selectedThemeColor == theme) {
                                     Icon(
                                         imageVector = Icons.Default.Done,
                                         contentDescription = "Selected color : ${theme.displayName}",

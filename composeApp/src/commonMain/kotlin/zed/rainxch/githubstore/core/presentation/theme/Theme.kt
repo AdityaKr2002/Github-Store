@@ -2,6 +2,7 @@ package zed.rainxch.githubstore.core.presentation.theme
 
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.darkColorScheme
@@ -404,10 +405,15 @@ fun GithubStoreTheme(
     appTheme: AppTheme = AppTheme.OCEAN,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) {
-        appTheme.darkScheme
-    } else {
-        appTheme.lightScheme
+    val colorScheme = when {
+        appTheme == AppTheme.DYNAMIC -> {
+            getDynamicColorScheme(darkTheme) ?: run {
+                if (darkTheme) AppTheme.OCEAN.darkScheme!! else AppTheme.OCEAN.lightScheme!!
+            }
+        }
+
+        darkTheme -> appTheme.darkScheme!!
+        else -> appTheme.lightScheme!!
     }
 
     MaterialTheme(
@@ -416,3 +422,8 @@ fun GithubStoreTheme(
         content = content
     )
 }
+
+expect fun isDynamicColorAvailable(): Boolean
+
+@Composable
+expect fun getDynamicColorScheme(darkTheme: Boolean): ColorScheme?
