@@ -6,6 +6,10 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.http.HttpHeaders
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import zed.rainxch.githubstore.app.app_state.AppStateManager
 import zed.rainxch.githubstore.core.data.services.LocalizationManager
 import zed.rainxch.githubstore.core.domain.model.GithubRelease
@@ -125,126 +129,131 @@ class DetailsRepositoryImpl(
     ): Triple<String, String?, String>? {
         val attempts = readmeHelper.generateReadmeAttempts()
         val baseUrl = "https://raw.githubusercontent.com/$owner/$repo/$defaultBranch/"
-
         val primaryLang = localizationManager.getPrimaryLanguageCode()
+
         Logger.d {
             "Attempting to fetch README for language preference: ${localizationManager.getCurrentLanguageCode()}"
         }
 
-        var lastError: Throwable? = null
-        val foundReadmes = mutableMapOf<String, Pair<String, String?>>()
+        val foundReadmes = coroutineScope {
+            attempts.map { attempt ->
+                async(start = CoroutineStart.LAZY) {
+                    try {
+                        Logger.d { "Trying ${attempt.path} (priority: ${attempt.priority})..." }
 
-        for (attempt in attempts) {
-            try {
-                Logger.d { "Trying ${attempt.path} (priority: ${attempt.priority})..." }
-
-                val rawMarkdownResult = github.safeApiCall<String>(
-                    rateLimitHandler = appStateManager.rateLimitHandler,
-                    autoRetryOnRateLimit = false
-                ) {
-                    get("$baseUrl${attempt.path}")
-                }
-
-                rawMarkdownResult.onFailure { error ->
-                    if (error is RateLimitException) {
-                        appStateManager.updateRateLimit(error.rateLimitInfo)
-                    }
-                }
-
-                val rawMarkdown = rawMarkdownResult.getOrNull()
-
-                if (rawMarkdown != null) {
-                    Logger.d { "Successfully fetched ${attempt.path}" }
-
-                    val processed = preprocessMarkdown(
-                        markdown = rawMarkdown,
-                        baseUrl = baseUrl
-                    )
-
-                    val detectedLang = readmeHelper.detectReadmeLanguage(processed)
-                    Logger.d { "Detected language: ${detectedLang ?: "unknown"} for ${attempt.path}" }
-
-                    foundReadmes[attempt.path] = Pair(processed, detectedLang)
-
-
-                    if (attempt.filename != "README.md" && detectedLang == primaryLang) {
-                        Logger.d { "Found localized README matching user language: ${attempt.path}" }
-                        return Triple(processed, detectedLang, attempt.path)
-                    }
-
-                    if (attempt.filename.contains(".${primaryLang}.", ignoreCase = true) ||
-                        attempt.filename.contains("-${primaryLang.uppercase()}.", ignoreCase = true)) {
-                        Logger.d { "Found explicit language file for user: ${attempt.path}" }
-                        return Triple(processed, detectedLang ?: primaryLang, attempt.path)
-                    }
-
-                    if (attempt.filename == "README.md") {
-                        if (detectedLang == primaryLang) {
-                            Logger.d { "Default README matches user language: ${attempt.path}" }
-                            return Triple(processed, detectedLang, attempt.path)
+                        val rawMarkdownResult = github.safeApiCall<String>(
+                            rateLimitHandler = appStateManager.rateLimitHandler,
+                            autoRetryOnRateLimit = false
+                        ) {
+                            get("$baseUrl${attempt.path}")
                         }
 
-                        if (primaryLang == "en" && detectedLang != null) {
-                            Logger.d { "Default README is $detectedLang, continuing search for English version" }
-                            continue
+                        rawMarkdownResult.onFailure { error ->
+                            if (error is RateLimitException) {
+                                appStateManager.updateRateLimit(error.rateLimitInfo)
+                            }
                         }
 
-                        if (primaryLang != "en" && detectedLang == "en") {
-                            Logger.d { "Default README is English, continuing search for $primaryLang version" }
-                            continue
-                        }
+                        val rawMarkdown = rawMarkdownResult.getOrNull()
 
-                        if (attempt.path == "README.md" && attempts.any { it.path.startsWith("docs/") }) {
-                            Logger.d { "Found root README.md, but checking docs/ folder first" }
-                            continue
-                        }
-                    }
+                        if (rawMarkdown != null) {
+                            Logger.d { "Successfully fetched ${attempt.path}" }
 
-                    if (primaryLang == "en" &&
-                        (attempt.filename.contains(".en.", ignoreCase = true) ||
-                                attempt.filename.contains("-EN.", ignoreCase = true))) {
-                        Logger.d { "Found English README for English user: ${attempt.path}" }
-                        return Triple(processed, "en", attempt.path)
+                            val processed = preprocessMarkdown(
+                                markdown = rawMarkdown,
+                                baseUrl = baseUrl
+                            )
+
+                            val detectedLang = readmeHelper.detectReadmeLanguage(processed)
+                            Logger.d { "Detected language: ${detectedLang ?: "unknown"} for ${attempt.path}" }
+
+                            attempt to Pair(processed, detectedLang)
+                        } else {
+                            null
+                        }
+                    } catch (e: Throwable) {
+                        Logger.d { "Failed to fetch ${attempt.path}: ${e.message}" }
+                        null
                     }
                 }
-            } catch (e: Throwable) {
-                lastError = e
-                Logger.d { "Failed to fetch ${attempt.path}: ${e.message}" }
+            }.also { asyncTasks ->
+                asyncTasks.take(6).forEach { it.start() }
+            }.awaitAll()
+                .filterNotNull()
+                .associateBy({ it.first }, { it.second })
+        }
+
+        if (foundReadmes.isEmpty()) {
+            Logger.e { "Failed to fetch any README variant." }
+            return null
+        }
+
+        foundReadmes.entries.firstOrNull { (attempt, content) ->
+            attempt.filename != "README.md" && content.second == primaryLang
+        }?.let { (attempt, content) ->
+            Logger.d { "Found localized README matching user language: ${attempt.path}" }
+            return Triple(content.first, content.second, attempt.path)
+        }
+
+        foundReadmes.entries.firstOrNull { (attempt, _) ->
+            attempt.filename.contains(".${primaryLang}.", ignoreCase = true) ||
+                    attempt.filename.contains("-${primaryLang.uppercase()}.", ignoreCase = true)
+        }?.let { (attempt, content) ->
+            Logger.d { "Found explicit language file for user: ${attempt.path}" }
+            return Triple(content.first, content.second ?: primaryLang, attempt.path)
+        }
+
+        foundReadmes.entries.firstOrNull { (attempt, content) ->
+            attempt.filename == "README.md" && content.second == primaryLang
+        }?.let { (attempt, content) ->
+            Logger.d { "Default README matches user language: ${attempt.path}" }
+            return Triple(content.first, content.second, attempt.path)
+        }
+
+        if (primaryLang == "en") {
+            foundReadmes.entries.firstOrNull { (_, content) ->
+                content.second == "en"
+            }?.let { (attempt, content) ->
+                Logger.d { "Found English README for English user: ${attempt.path}" }
+                return Triple(content.first, content.second, attempt.path)
             }
         }
 
-        if (foundReadmes.isNotEmpty()) {
-            foundReadmes.entries.firstOrNull { it.value.second == primaryLang }?.let {
-                Logger.d { "Fallback: Using README matching user language: ${it.key}" }
-                return Triple(it.value.first, it.value.second, it.key)
-            }
+        foundReadmes.entries.firstOrNull { (_, content) ->
+            content.second == primaryLang
+        }?.let { (attempt, content) ->
+            Logger.d { "Fallback: Using README matching user language: ${attempt.path}" }
+            return Triple(content.first, content.second, attempt.path)
+        }
 
-            if (primaryLang == "en") {
-                foundReadmes.entries.firstOrNull { it.value.second == "en" }?.let {
-                    Logger.d { "Fallback: Using English README: ${it.key}" }
-                    return Triple(it.value.first, it.value.second, it.key)
-                }
-            }
-
-            foundReadmes.entries.firstOrNull { it.key == "README.md" }?.let {
-                Logger.d { "Fallback: Using root README.md (language: ${it.value.second}): ${it.key}" }
-                return Triple(it.value.first, it.value.second, it.key)
-            }
-
-            foundReadmes.entries.firstOrNull { it.key.startsWith(".github/") }?.let {
-                Logger.d { "Fallback: Using .github README: ${it.key}" }
-                return Triple(it.value.first, it.value.second, it.key)
-            }
-
-            foundReadmes.entries.first().let {
-                Logger.d { "Fallback: Using first found README: ${it.key}" }
-                return Triple(it.value.first, it.value.second, it.key)
+        if (primaryLang == "en") {
+            foundReadmes.entries.firstOrNull { (_, content) ->
+                content.second == "en"
+            }?.let { (attempt, content) ->
+                Logger.d { "Fallback: Using English README: ${attempt.path}" }
+                return Triple(content.first, content.second, attempt.path)
             }
         }
 
-        Logger.e {
-            "Failed to fetch any README variant. Last error: ${lastError?.message}"
+        foundReadmes.entries.firstOrNull { (attempt, _) ->
+            attempt.path == "README.md"
+        }?.let { (attempt, content) ->
+            Logger.d { "Fallback: Using root README.md (language: ${content.second}): ${attempt.path}" }
+            return Triple(content.first, content.second, attempt.path)
         }
+
+        foundReadmes.entries.firstOrNull { (attempt, _) ->
+            attempt.path.startsWith(".github/")
+        }?.let { (attempt, content) ->
+            Logger.d { "Fallback: Using .github README: ${attempt.path}" }
+            return Triple(content.first, content.second, attempt.path)
+        }
+
+        foundReadmes.entries.minByOrNull { it.key.priority }?.let { (attempt, content) ->
+            Logger.d { "Fallback: Using highest priority README: ${attempt.path}" }
+            return Triple(content.first, content.second, attempt.path)
+        }
+
         return null
     }
 
