@@ -36,7 +36,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -55,11 +54,9 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import githubstore.composeapp.generated.resources.Res
-import githubstore.composeapp.generated.resources.discover_repositories
 import githubstore.composeapp.generated.resources.language_label
 import githubstore.composeapp.generated.resources.navigate_back
 import githubstore.composeapp.generated.resources.results_found
@@ -386,41 +383,23 @@ private fun SearchTopbar(
     state: SearchState,
     focusRequester: FocusRequester
 ) {
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(8.dp)
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        IconButton(
+            onClick = { onAction(SearchAction.OnNavigateBackClick) }
         ) {
-            IconButton(
-                shapes = IconButtonDefaults.shapes(),
-                onClick = {
-                    onAction(SearchAction.OnNavigateBackClick)
-                }
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(Res.string.navigate_back),
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-
-            Text(
-                text = stringResource(Res.string.discover_repositories),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                softWrap = false,
-                overflow = TextOverflow.Ellipsis
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(Res.string.navigate_back),
+                modifier = Modifier.size(24.dp)
             )
         }
-
-        Spacer(Modifier.height(16.dp))
 
         TextField(
             value = state.query,
@@ -431,36 +410,32 @@ private fun SearchTopbar(
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(20.dp)
                 )
             },
+            placeholder = {
+                Text(
+                    text = stringResource(Res.string.search_repositories_hint),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            textStyle = MaterialTheme.typography.bodyLarge.copy(
+                color = MaterialTheme.colorScheme.onSurface
+            ),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(
+                onSearch = { onAction(SearchAction.OnSearchImeClick) }
+            ),
             colors = TextFieldDefaults.colors(
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                 unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest
             ),
-            placeholder = {
-                Text(
-                    text = stringResource(Res.string.search_repositories_hint),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            },
-            textStyle = MaterialTheme.typography.titleMedium.copy(
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            ),
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Search
-            ),
-            keyboardActions = KeyboardActions(
-                onSearch = {
-                    onAction(SearchAction.OnSearchImeClick)
-                }
-            ),
             shape = CircleShape,
             modifier = Modifier
-                .fillMaxWidth()
+                .weight(1f)
                 .focusRequester(focusRequester)
         )
     }
