@@ -19,6 +19,10 @@
 </p>
 
 <p align="center">
+<a href="/docs/README-RU.md" target="_blank"> Русский </a> | <a href="/README.md" target="_blank"> English </a> | <a href="/docs/README-ES.md" target="_blank"> Español </a> | <a href="/docs/README-FR.md" target="_blank"> Français </a> | <a href="/docs/README-KR.md" target="_blank"> 한국어 </a> | <a href="/docs/README-ZH.md" target="_blank">中文</a> | <a href="/docs/README-JA.md" target="_blank">日本語</a>
+</p>
+
+<p align="center">
 GitHub Store는 GitHub 릴리스를 위한 크로스플랫폼 “Play Store”입니다.
 실제로 설치 가능한 바이너리를 제공하는 저장소를 찾아
 한 곳에서 설치, 추적 및 업데이트할 수 있습니다.

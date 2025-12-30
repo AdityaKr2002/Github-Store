@@ -19,6 +19,10 @@
 </p>
 
 <p align="center">
+<a href="/docs/README-RU.md" target="_blank"> Русский </a> | <a href="/README.md" target="_blank"> English </a> | <a href="/docs/README-ES.md" target="_blank"> Español </a> | <a href="/docs/README-FR.md" target="_blank"> Français </a> | <a href="/docs/README-KR.md" target="_blank"> 한국어 </a> | <a href="/docs/README-ZH.md" target="_blank">中文</a> | <a href="/docs/README-JA.md" target="_blank">日本語</a>
+</p>
+
+<p align="center">
 GitHub Store 是一个面向 GitHub Releases 的跨平台 “Play Store”。  
 它可以发现真正可安装的二进制文件仓库，并让你在一个地方完成
 安装、跟踪和更新。
