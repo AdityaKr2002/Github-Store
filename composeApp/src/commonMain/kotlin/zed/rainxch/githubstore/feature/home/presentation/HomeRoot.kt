@@ -36,6 +36,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -60,10 +61,14 @@ import githubstore.composeapp.generated.resources.home_retry
 import githubstore.composeapp.generated.resources.installed_apps
 import githubstore.composeapp.generated.resources.search_repositories_hint
 import githubstore.composeapp.generated.resources.settings_title
+import io.github.fletchmckee.liquid.LiquidState
+import io.github.fletchmckee.liquid.liquefiable
+import io.github.fletchmckee.liquid.rememberLiquidState
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
+import zed.rainxch.githubstore.app.navigation.LocalBottomNavigationLiquid
 import zed.rainxch.githubstore.core.presentation.components.GithubStoreButton
 import zed.rainxch.githubstore.core.presentation.components.RepositoryCard
 import zed.rainxch.githubstore.core.presentation.theme.GithubStoreTheme
@@ -113,6 +118,7 @@ fun HomeScreen(
     onAction: (HomeAction) -> Unit,
 ) {
     val listState = rememberLazyStaggeredGridState()
+    val liquidState = LocalBottomNavigationLiquid.current
 
     val shouldLoadMore by remember {
         derivedStateOf {
@@ -148,6 +154,7 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(horizontal = 8.dp)
+                .liquefiable(liquidState)
         ) {
             FilterChips(state, onAction)
 
@@ -156,7 +163,12 @@ fun HomeScreen(
 
                 ErrorState(state, onAction)
 
-                MainState(state, listState, onAction)
+                MainState(
+                    state = state,
+                    listState = listState,
+                    onAction = onAction,
+                    liquidState = liquidState
+                )
             }
         }
     }
@@ -166,7 +178,8 @@ fun HomeScreen(
 private fun MainState(
     state: HomeState,
     listState: LazyStaggeredGridState,
-    onAction: (HomeAction) -> Unit
+    onAction: (HomeAction) -> Unit,
+    liquidState: LiquidState
 ) {
     if (state.repos.isNotEmpty()) {
         LazyVerticalStaggeredGrid(
@@ -189,7 +202,9 @@ private fun MainState(
                     onClick = {
                         onAction(HomeAction.OnRepositoryClick(homeRepo.repo))
                     },
-                    modifier = Modifier.animateItem()
+                    modifier = Modifier
+                        .animateItem()
+                        .liquefiable(liquidState)
                 )
             }
 
@@ -349,12 +364,6 @@ private fun TopAppBar(
                 overflow = TextOverflow.Ellipsis
             )
         },
-        actions = {
-            TopbarActions(
-                state = state,
-                onAction = onAction
-            )
-        },
         modifier = Modifier.padding(12.dp)
     )
 }
@@ -442,9 +451,15 @@ private fun TopbarActions(
 @Composable
 private fun Preview() {
     GithubStoreTheme {
-        HomeScreen(
-            state = HomeState(),
-            onAction = {}
-        )
+        val liquidState = rememberLiquidState()
+
+        CompositionLocalProvider(
+            value = LocalBottomNavigationLiquid provides liquidState
+        ) {
+            HomeScreen(
+                state = HomeState(),
+                onAction = {}
+            )
+        }
     }
 }
