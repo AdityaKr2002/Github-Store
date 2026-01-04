@@ -20,11 +20,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import zed.rainxch.githubstore.core.domain.repository.InstalledAppsRepository
+import zed.rainxch.githubstore.core.domain.use_cases.SyncInstalledAppsUseCase
 import zed.rainxch.githubstore.feature.search.domain.repository.SearchRepository
 
 class SearchViewModel(
     private val searchRepository: SearchRepository,
-    private val installedAppsRepository: InstalledAppsRepository
+    private val installedAppsRepository: InstalledAppsRepository,
+    private val syncInstalledAppsUseCase: SyncInstalledAppsUseCase
 ) : ViewModel() {
 
     private var currentSearchJob: Job? = null
@@ -35,7 +37,21 @@ class SearchViewModel(
     val state = _state.asStateFlow()
 
     init {
+        syncSystemState()
         observeInstalledApps()
+    }
+
+    private fun syncSystemState() {
+        viewModelScope.launch {
+            try {
+                val result = syncInstalledAppsUseCase()
+                if (result.isFailure) {
+                    Logger.w { "Initial sync had issues: ${result.exceptionOrNull()?.message}" }
+                }
+            } catch (e: Exception) {
+                Logger.e { "Initial sync failed: ${e.message}" }
+            }
+        }
     }
 
     private fun observeInstalledApps() {
@@ -99,21 +115,13 @@ class SearchViewModel(
                     .collect { paginatedRepos ->
                         currentPage = paginatedRepos.nextPageIndex
 
-                        val newReposWithStatus = coroutineScope {
-                            paginatedRepos.repos.map { repo ->
-                                async(Dispatchers.IO) {
-                                    val app = installedMap[repo.id]
-                                    val isUpdateAvailable = if (app?.packageName != null) {
-                                        installedAppsRepository.checkForUpdates(app.packageName)
-                                    } else false
-
-                                    SearchRepo(
-                                        isInstalled = app != null,
-                                        isUpdateAvailable = isUpdateAvailable,
-                                        repo = repo
-                                    )
-                                }
-                            }.awaitAll()
+                        val newReposWithStatus = paginatedRepos.repos.map { repo ->
+                            val app = installedMap[repo.id]
+                            SearchRepo(
+                                isInstalled = app != null,
+                                isUpdateAvailable = app?.isUpdateAvailable ?: false,
+                                repo = repo
+                            )
                         }
 
                         _state.update { currentState ->
@@ -183,9 +191,7 @@ class SearchViewModel(
             is SearchAction.OnLanguageSelected -> {
                 if (_state.value.selectedLanguage != action.language) {
                     _state.update {
-                        it.copy(
-                            selectedLanguage = action.language
-                        )
+                        it.copy(selectedLanguage = action.language)
                     }
                     currentPage = 1
                     searchDebounceJob?.cancel()
@@ -225,9 +231,7 @@ class SearchViewModel(
 
             SearchAction.OnToggleLanguageSheetVisibility -> {
                 _state.update {
-                    it.copy(
-                        isLanguageSheetVisible = !it.isLanguageSheetVisible
-                    )
+                    it.copy(isLanguageSheetVisible = !it.isLanguageSheetVisible)
                 }
             }
 

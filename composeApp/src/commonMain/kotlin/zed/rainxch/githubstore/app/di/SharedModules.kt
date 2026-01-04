@@ -192,7 +192,8 @@ val searchModule: Module = module {
     viewModel {
         SearchViewModel(
             searchRepository = get(),
-            installedAppsRepository = get()
+            installedAppsRepository = get(),
+            syncInstalledAppsUseCase = get()
         )
     }
 }
