@@ -4,6 +4,8 @@ package zed.rainxch.githubstore.feature.starred_repos.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import githubstore.composeapp.generated.resources.Res
+import githubstore.composeapp.generated.resources.sync_starred_failed
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,6 +16,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
 import zed.rainxch.githubstore.core.data.data_source.TokenDataSource
 import zed.rainxch.githubstore.core.data.local.db.entities.FavoriteRepo
 import zed.rainxch.githubstore.core.domain.repository.FavouritesRepository
@@ -113,7 +116,7 @@ class StarredReposViewModel (
                     _state.update {
                         it.copy(
                             isSyncing = false,
-                            errorMessage = error.message ?: "Failed to sync starred repos"
+                            errorMessage = error.message ?: getString(Res.string.sync_starred_failed)
                         )
                     }
                 }

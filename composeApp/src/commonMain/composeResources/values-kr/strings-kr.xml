@@ -257,4 +257,23 @@
     <string name="added_days_ago">%1$d일 전에 추가됨</string>
     <string name="added_on_date">%1$s에 추가됨</string>
 
+    <string name="starred_repositories">별표 표시된 저장소</string>
+    <string name="repository_starred">저장소에 별표가 추가되었습니다</string>
+    <string name="repository_not_starred">저장소에 별표가 없습니다</string>
+    <string name="star_from_github">GitHub에서 저장소에 별표를 추가할 수 있습니다</string>
+    <string name="unstar_from_github">GitHub에서 별표를 제거할 수 있습니다</string>
+
+    <string name="sign_in_required">로그인이 필요합니다</string>
+    <string name="no_starred_repos">별표 표시된 저장소가 없습니다</string>
+    <string name="sign_in_with_github_for_stars">GitHub로 로그인하여 별표 저장소를 확인하세요</string>
+    <string name="star_repos_hint">설치 가능한 릴리스가 있는 저장소에 별표를 추가하세요</string>
+    <string name="last_synced">마지막 동기화</string>
+    <string name="just_now">방금</string>
+    <string name="minutes_ago">%d분 전</string>
+    <string name="hours_ago">%d시간 전</string>
+    <string name="days_ago">%d일 전</string>
+    <string name="sync_failed">별표 저장소 동기화에 실패했습니다</string>
+    <string name="dismiss">닫기</string>
+    <string name="sync_starred_failed">별표 저장소 동기화에 실패했습니다</string>
+
 </resources>

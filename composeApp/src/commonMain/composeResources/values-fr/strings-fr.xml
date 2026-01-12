@@ -206,4 +206,23 @@
     <string name="added_days_ago">ajouté il y a %1$d jour(s)</string>
     <string name="added_on_date">ajouté le %1$s</string>
 
+    <string name="starred_repositories">Dépôts favoris</string>
+    <string name="repository_starred">Le dépôt est en favori</string>
+    <string name="repository_not_starred">Le dépôt n’est pas en favori</string>
+    <string name="star_from_github">Vous pouvez ajouter ce dépôt aux favoris sur GitHub</string>
+    <string name="unstar_from_github">Vous pouvez retirer ce dépôt des favoris sur GitHub</string>
+
+    <string name="sign_in_required">Connexion requise</string>
+    <string name="no_starred_repos">Aucun dépôt favori</string>
+    <string name="sign_in_with_github_for_stars">Connectez-vous avec GitHub pour voir vos dépôts favoris</string>
+    <string name="star_repos_hint">Ajoutez des dépôts avec des versions installables sur GitHub pour les voir ici</string>
+    <string name="last_synced">Dernière synchronisation</string>
+    <string name="just_now">À l’instant</string>
+    <string name="minutes_ago">Il y a %d min</string>
+    <string name="hours_ago">Il y a %d h</string>
+    <string name="days_ago">Il y a %d j</string>
+    <string name="sync_failed">Échec de la synchronisation des dépôts favoris</string>
+    <string name="dismiss">Fermer</string>
+    <string name="sync_starred_failed">Échec de la synchronisation des dépôts favoris</string>
+
 </resources>

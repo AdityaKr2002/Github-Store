@@ -204,6 +204,7 @@ class SearchViewModel(
                                         isInstalled = r.isInstalled,
                                         isUpdateAvailable = r.isUpdateAvailable,
                                         isFavourite = r.isFavourite,
+                                        isStarred = r.isStarred,
                                         repository = r.repository
                                     )
                                 }

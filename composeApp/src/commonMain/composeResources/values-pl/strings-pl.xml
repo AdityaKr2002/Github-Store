@@ -223,5 +223,23 @@
     <string name="added_days_ago">dodano %1$d dni temu</string>
     <string name="added_on_date">dodano %1$s</string>
 
+    <string name="starred_repositories">Oznaczone gwiazdką repozytoria</string>
+    <string name="repository_starred">Repozytorium jest oznaczone gwiazdką</string>
+    <string name="repository_not_starred">Repozytorium nie jest oznaczone gwiazdką</string>
+    <string name="star_from_github">Możesz oznaczyć repozytorium gwiazdką na GitHubie</string>
+    <string name="unstar_from_github">Możesz usunąć gwiazdkę z repozytorium na GitHubie</string>
+
+    <string name="sign_in_required">Wymagane logowanie</string>
+    <string name="no_starred_repos">Brak oznaczonych repozytoriów</string>
+    <string name="sign_in_with_github_for_stars">Zaloguj się przez GitHub, aby zobaczyć oznaczone repozytoria</string>
+    <string name="star_repos_hint">Oznacz repozytoria z instalowalnymi wydaniami na GitHubie</string>
+    <string name="last_synced">Ostatnia synchronizacja</string>
+    <string name="just_now">Przed chwilą</string>
+    <string name="minutes_ago">%d min temu</string>
+    <string name="hours_ago">%d h temu</string>
+    <string name="days_ago">%d d temu</string>
+    <string name="sync_failed">Nie udało się zsynchronizować oznaczonych repozytoriów</string>
+    <string name="dismiss">Zamknij</string>
+    <string name="sync_starred_failed">Nie udało się zsynchronizować polecanych repozytoriów</string>
 
 </resources>

@@ -206,4 +206,23 @@
     <string name="added_days_ago">añadido hace %1$d día(s)</string>
     <string name="added_on_date">añadido el %1$s</string>
 
+    <string name="starred_repositories">Repositorios destacados</string>
+    <string name="repository_starred">El repositorio está marcado con estrella</string>
+    <string name="repository_not_starred">El repositorio no está marcado con estrella</string>
+    <string name="star_from_github">Puedes marcar el repositorio desde GitHub</string>
+    <string name="unstar_from_github">Puedes quitar la estrella desde GitHub</string>
+
+    <string name="sign_in_required">Inicio de sesión requerido</string>
+    <string name="sign_in_with_github_for_stars">Inicia sesión con GitHub para ver tus repositorios destacados</string>
+    <string name="no_starred_repos">No hay repositorios destacados</string>
+    <string name="star_repos_hint">Marca repositorios con lanzamientos instalables en GitHub para verlos aquí</string>
+    <string name="last_synced">Última sincronización</string>
+    <string name="just_now">Justo ahora</string>
+    <string name="minutes_ago">Hace %d min</string>
+    <string name="hours_ago">Hace %d h</string>
+    <string name="days_ago">Hace %d d</string>
+    <string name="sync_failed">Error al sincronizar repositorios destacados</string>
+    <string name="dismiss">Cerrar</string>
+    <string name="sync_starred_failed">No se pudieron sincronizar los repositorios destacados</string>
+
 </resources>

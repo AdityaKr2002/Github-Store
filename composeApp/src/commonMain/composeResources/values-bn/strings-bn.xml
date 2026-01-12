@@ -259,4 +259,23 @@
     <string name="added_days_ago">%1$d দিন আগে যোগ করা হয়েছে</string>
     <string name="added_on_date">%1$s তারিখে যোগ করা হয়েছে</string>
 
+    <string name="starred_repositories">স্টার করা রিপোজিটরি</string>
+    <string name="repository_starred">রিপোজিটরি স্টার করা হয়েছে</string>
+    <string name="repository_not_starred">রিপোজিটরি স্টার করা হয়নি</string>
+    <string name="star_from_github">আপনি GitHub থেকে রিপোজিটরি স্টার করতে পারেন</string>
+    <string name="unstar_from_github">আপনি GitHub থেকে রিপোজিটরির স্টার সরাতে পারেন</string>
+
+    <string name="sign_in_required">সাইন ইন প্রয়োজন</string>
+    <string name="sign_in_with_github_for_stars">স্টার করা রিপোজিটরি দেখতে GitHub দিয়ে সাইন ইন করুন</string>
+    <string name="no_starred_repos">কোনো স্টার করা রিপোজিটরি নেই</string>
+    <string name="star_repos_hint">ইনস্টলযোগ্য রিলিজ থাকা রিপোজিটরি GitHub-এ স্টার করুন</string>
+    <string name="last_synced">শেষ সিঙ্ক</string>
+    <string name="just_now">এইমাত্র</string>
+    <string name="minutes_ago">%d মিনিট আগে</string>
+    <string name="hours_ago">%d ঘণ্টা আগে</string>
+    <string name="days_ago">%d দিন আগে</string>
+    <string name="sync_failed">স্টার করা রিপোজিটরি সিঙ্ক করতে ব্যর্থ হয়েছে</string>
+    <string name="dismiss">বন্ধ করুন</string>
+    <string name="sync_starred_failed">স্টার করা রিপোজিটরি সিঙ্ক করতে ব্যর্থ হয়েছে</string>
+
 </resources>

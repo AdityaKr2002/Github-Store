@@ -206,4 +206,23 @@
     <string name="added_days_ago">%1$d日前に追加</string>
     <string name="added_on_date">%1$s に追加</string>
 
+    <string name="starred_repositories">スター付きリポジトリ</string>
+    <string name="repository_starred">リポジトリはスター済みです</string>
+    <string name="repository_not_starred">リポジトリはスターされていません</string>
+    <string name="star_from_github">GitHub でリポジトリにスターを付けられます</string>
+    <string name="unstar_from_github">GitHub でスターを解除できます</string>
+
+    <string name="sign_in_required">ログインが必要です</string>
+    <string name="no_starred_repos">スター付きリポジトリはありません</string>
+    <string name="sign_in_with_github_for_stars">GitHubでログインしてスター付きリポジトリを表示します</string>
+    <string name="star_repos_hint">インストール可能なリリースのあるリポジトリにスターを付けてください</string>
+    <string name="last_synced">最終同期</string>
+    <string name="just_now">たった今</string>
+    <string name="minutes_ago">%d分前</string>
+    <string name="hours_ago">%d時間前</string>
+    <string name="days_ago">%d日前</string>
+    <string name="sync_failed">スター付きリポジトリの同期に失敗しました</string>
+    <string name="dismiss">閉じる</string>
+    <string name="sync_starred_failed">スター付きリポジトリの同期に失敗しました</string>
+
 </resources>

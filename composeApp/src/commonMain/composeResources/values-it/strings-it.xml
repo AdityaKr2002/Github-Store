@@ -255,4 +255,23 @@
     <string name="added_days_ago">aggiunto %1$d giorno(i) fa</string>
     <string name="added_on_date">aggiunto il %1$s</string>
 
+    <string name="starred_repositories">Repository preferiti</string>
+    <string name="repository_starred">Il repository è nei preferiti</string>
+    <string name="repository_not_starred">Il repository non è nei preferiti</string>
+    <string name="star_from_github">Puoi aggiungere il repository ai preferiti su GitHub</string>
+    <string name="unstar_from_github">Puoi rimuovere il repository dai preferiti su GitHub</string>
+
+    <string name="sign_in_required">Accesso richiesto</string>
+    <string name="no_starred_repos">Nessun repository preferito</string>
+    <string name="sign_in_with_github_for_stars">Accedi con GitHub per vedere i repository preferiti</string>
+    <string name="star_repos_hint">Aggiungi repository con release installabili su GitHub per vederli qui</string>
+    <string name="last_synced">Ultima sincronizzazione</string>
+    <string name="just_now">Poco fa</string>
+    <string name="minutes_ago">%d min fa</string>
+    <string name="hours_ago">%d h fa</string>
+    <string name="days_ago">%d g fa</string>
+    <string name="sync_failed">Impossibile sincronizzare i repository preferiti</string>
+    <string name="dismiss">Chiudi</string>
+    <string name="sync_starred_failed">Impossibile sincronizzare i repository preferiti</string>
+
 </resources>

@@ -207,4 +207,23 @@
     <string name="added_days_ago">%1$d 天前添加</string>
     <string name="added_on_date">%1$s 添加</string>
 
+    <string name="starred_repositories">已收藏的仓库</string>
+    <string name="repository_starred">仓库已收藏</string>
+    <string name="repository_not_starred">仓库未收藏</string>
+    <string name="star_from_github">你可以在 GitHub 上收藏该仓库</string>
+    <string name="unstar_from_github">你可以在 GitHub 上取消收藏该仓库</string>
+
+    <string name="sign_in_required">需要登录</string>
+    <string name="no_starred_repos">没有收藏的仓库</string>
+    <string name="sign_in_with_github_for_stars">使用 GitHub 登录以查看收藏的仓库</string>
+    <string name="star_repos_hint">在 GitHub 上收藏有可安装版本的仓库以在此查看</string>
+    <string name="last_synced">上次同步</string>
+    <string name="just_now">刚刚</string>
+    <string name="minutes_ago">%d 分钟前</string>
+    <string name="hours_ago">%d 小时前</string>
+    <string name="days_ago">%d 天前</string>
+    <string name="sync_failed">同步收藏仓库失败</string>
+    <string name="dismiss">关闭</string>
+    <string name="sync_starred_failed">同步收藏的仓库失败</string>
+
 </resources>

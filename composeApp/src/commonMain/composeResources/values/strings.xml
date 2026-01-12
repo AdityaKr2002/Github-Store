@@ -265,4 +265,17 @@
     <string name="star_from_github">You can star repository from GitHub</string>
     <string name="unstar_from_github">You can unstar repository from GitHub</string>
 
+    <string name="sign_in_required">Sign in required</string>
+    <string name="sign_in_with_github_for_stars">Sign in with GitHub to see your starred repositories</string>
+    <string name="no_starred_repos">No starred repositories</string>
+    <string name="star_repos_hint">Star repositories on GitHub with installable releases to see them here</string>
+    <string name="last_synced">Last synced</string>
+    <string name="just_now">Just now</string>
+    <string name="minutes_ago">%d min ago</string>
+    <string name="hours_ago">%d h ago</string>
+    <string name="days_ago">%d d ago</string>
+    <string name="sync_failed">Failed to sync starred repositories</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="sync_starred_failed">Failed to sync starred repos</string>
+
 </resources>

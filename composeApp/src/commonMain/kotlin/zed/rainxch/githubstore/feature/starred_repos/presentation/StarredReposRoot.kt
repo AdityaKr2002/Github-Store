@@ -44,7 +44,19 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import githubstore.composeapp.generated.resources.Res
+import githubstore.composeapp.generated.resources.days_ago
+import githubstore.composeapp.generated.resources.dismiss
+import githubstore.composeapp.generated.resources.hours_ago
+import githubstore.composeapp.generated.resources.just_now
+import githubstore.composeapp.generated.resources.last_synced
+import githubstore.composeapp.generated.resources.minutes_ago
 import githubstore.composeapp.generated.resources.navigate_back
+import githubstore.composeapp.generated.resources.no_starred_repos
+import githubstore.composeapp.generated.resources.retry
+import githubstore.composeapp.generated.resources.sign_in_required
+import githubstore.composeapp.generated.resources.sign_in_with_github
+import githubstore.composeapp.generated.resources.sign_in_with_github_for_stars
+import githubstore.composeapp.generated.resources.star_repos_hint
 import githubstore.composeapp.generated.resources.starred_repositories
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
@@ -102,8 +114,8 @@ fun StarredScreen(
             when {
                 !state.isAuthenticated -> {
                     EmptyStateContent(
-                        title = "Sign in Required",
-                        message = "Sign in with GitHub to see your starred repositories",
+                        title = stringResource(Res.string.sign_in_required),
+                        message = stringResource(Res.string.sign_in_with_github_for_stars),
                         icon = Icons.Default.Star,
                         modifier = Modifier.align(Alignment.Center)
                     )
@@ -117,10 +129,10 @@ fun StarredScreen(
 
                 state.starredRepositories.isEmpty() && !state.isSyncing -> {
                     EmptyStateContent(
-                        title = "No Starred Repos",
-                        message = "Star repositories on GitHub that have installable releases to see them here",
+                        title = stringResource(Res.string.no_starred_repos),
+                        message = stringResource(Res.string.star_repos_hint),
                         icon = Icons.Default.Star,
-                        actionText = if (state.errorMessage != null) "Retry" else null,
+                        actionText = if (state.errorMessage != null) stringResource(Res.string.retry) else null,
                         onActionClick = if (state.errorMessage != null) {
                             { onAction(StarredReposAction.OnRetrySync) }
                         } else null,
@@ -164,7 +176,6 @@ fun StarredScreen(
                 }
             }
 
-            // Error snackbar
             state.errorMessage?.let { message ->
                 Snackbar(
                     modifier = Modifier
@@ -176,12 +187,14 @@ fun StarredScreen(
                                 onAction(StarredReposAction.OnRetrySync)
                             }
                         ) {
-                            Text("Retry")
+                            Text(
+                                text = stringResource(Res.string.retry)
+                            )
                         }
                     },
                     dismissAction = {
                         IconButton(onClick = { onAction(StarredReposAction.OnDismissError) }) {
-                            Icon(Icons.Default.Close, contentDescription = "Dismiss")
+                            Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.dismiss))
                         }
                     }
                 ) {
@@ -204,14 +217,15 @@ private fun StarredTopBar(
             title = {
                 Column {
                     Text(
-                        text = "Starred Repositories",
+                        text = stringResource(Res.string.starred_repositories),
                         style = MaterialTheme.typography.titleMediumEmphasized,
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
                     if (lastSyncTime != null && !isSyncing) {
                         Text(
-                            text = "Last synced: ${formatRelativeTime(lastSyncTime)}",
+                            text = "${stringResource(Res.string.last_synced)}:" +
+                                    " ${formatRelativeTime(lastSyncTime)}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -225,7 +239,7 @@ private fun StarredTopBar(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Navigate back",
+                        contentDescription = stringResource(Res.string.navigate_back),
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -299,10 +313,10 @@ private fun formatRelativeTime(timestamp: Long): String {
     val diff = now - timestamp
 
     return when {
-        diff < 60_000 -> "just now"
-        diff < 3600_000 -> "${diff / 60_000}m ago"
-        diff < 86400_000 -> "${diff / 3600_000}h ago"
-        else -> "${diff / 86400_000}d ago"
+        diff < 60_000 -> stringResource(Res.string.just_now)
+        diff < 3600_000 -> stringResource(Res.string.minutes_ago, diff / 60_000)
+        diff < 86400_000 -> stringResource(Res.string.hours_ago, diff / 3600_000)
+        else -> stringResource(Res.string.days_ago, diff / 86400_000)
     }
 }
 

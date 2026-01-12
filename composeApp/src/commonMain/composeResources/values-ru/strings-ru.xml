@@ -224,4 +224,23 @@
     <string name="added_days_ago">добавлено %1$d дн. назад</string>
     <string name="added_on_date">добавлено %1$s</string>
 
+    <string name="starred_repositories">Избранные репозитории</string>
+    <string name="repository_starred">Репозиторий добавлен в избранное</string>
+    <string name="repository_not_starred">Репозиторий не в избранном</string>
+    <string name="star_from_github">Вы можете добавить репозиторий в избранное на GitHub</string>
+    <string name="unstar_from_github">Вы можете убрать репозиторий из избранного на GitHub</string>
+
+    <string name="sign_in_required">Требуется вход</string>
+    <string name="no_starred_repos">Нет избранных репозиториев</string>
+    <string name="sign_in_with_github_for_stars">Войдите через GitHub, чтобы увидеть избранные репозитории</string>
+    <string name="star_repos_hint">Отмечайте репозитории с установочными релизами на GitHub</string>
+    <string name="last_synced">Последняя синхронизация</string>
+    <string name="just_now">Только что</string>
+    <string name="minutes_ago">%d мин назад</string>
+    <string name="hours_ago">%d ч назад</string>
+    <string name="days_ago">%d д назад</string>
+    <string name="sync_failed">Не удалось синхронизировать избранные репозитории</string>
+    <string name="dismiss">Закрыть</string>
+    <string name="sync_starred_failed">Не удалось синхронизировать избранные репозитории</string>
+
 </resources>
