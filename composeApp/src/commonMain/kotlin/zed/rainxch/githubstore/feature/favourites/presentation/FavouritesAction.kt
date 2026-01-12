@@ -1,6 +1,6 @@
-package zed.rainxch.githubstore.feature.favourites
+package zed.rainxch.githubstore.feature.favourites.presentation
 
-import zed.rainxch.githubstore.feature.favourites.model.FavouriteRepository
+import zed.rainxch.githubstore.feature.favourites.presentation.model.FavouriteRepository
 
 sealed interface FavouritesAction {
     data object OnNavigateBackClick : FavouritesAction

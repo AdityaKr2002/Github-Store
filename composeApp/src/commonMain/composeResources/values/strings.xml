@@ -259,5 +259,6 @@
     <string name="added_days_ago">added %1$d day(s) ago</string>
     <string name="added_on_date">added on %1$s</string>
 
+    <string name="starred_repositories">Starred Repositories</string>
 
 </resources>

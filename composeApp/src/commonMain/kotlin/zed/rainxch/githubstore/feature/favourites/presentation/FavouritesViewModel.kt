@@ -1,4 +1,4 @@
-package zed.rainxch.githubstore.feature.favourites
+package zed.rainxch.githubstore.feature.favourites.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -6,7 +6,6 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
@@ -15,8 +14,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import zed.rainxch.githubstore.core.data.local.db.entities.FavoriteRepo
 import zed.rainxch.githubstore.core.domain.repository.FavouritesRepository
-import zed.rainxch.githubstore.feature.favourites.mappers.toFavouriteRepositoryUi
-import zed.rainxch.githubstore.feature.favourites.model.FavouriteRepository
+import zed.rainxch.githubstore.feature.favourites.presentation.mappers.toFavouriteRepositoryUi
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 

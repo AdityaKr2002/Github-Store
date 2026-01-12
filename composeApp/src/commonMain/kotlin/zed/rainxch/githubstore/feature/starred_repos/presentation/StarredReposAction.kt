@@ -1,0 +1,12 @@
+package zed.rainxch.githubstore.feature.starred_repos.presentation
+
+import zed.rainxch.githubstore.feature.starred_repos.presentation.model.StarredRepositoryUi
+
+sealed interface StarredReposAction {
+    data object OnNavigateBackClick : StarredReposAction
+    data object OnRefresh : StarredReposAction
+    data object OnRetrySync : StarredReposAction
+    data object OnDismissError : StarredReposAction
+    data class OnRepositoryClick(val repository: StarredRepositoryUi) : StarredReposAction
+    data class OnToggleFavorite(val repository: StarredRepositoryUi) : StarredReposAction
+}

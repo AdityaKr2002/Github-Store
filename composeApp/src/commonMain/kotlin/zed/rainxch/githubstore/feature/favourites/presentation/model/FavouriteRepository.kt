@@ -1,4 +1,4 @@
-package zed.rainxch.githubstore.feature.favourites.model
+package zed.rainxch.githubstore.feature.favourites.presentation.model
 
 data class FavouriteRepository(
     val repoId: Long,

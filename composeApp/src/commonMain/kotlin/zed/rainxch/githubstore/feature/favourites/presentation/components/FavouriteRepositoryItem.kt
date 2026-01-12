@@ -1,5 +1,6 @@
-package zed.rainxch.githubstore.feature.favourites.components
+package zed.rainxch.githubstore.feature.favourites.presentation.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,7 +37,7 @@ import com.skydoves.landscapist.crossfade.CrossfadePlugin
 import githubstore.composeapp.generated.resources.Res
 import githubstore.composeapp.generated.resources.remove_from_favourites
 import org.jetbrains.compose.resources.stringResource
-import zed.rainxch.githubstore.feature.favourites.model.FavouriteRepository
+import zed.rainxch.githubstore.feature.favourites.presentation.model.FavouriteRepository
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -93,12 +94,12 @@ fun FavouriteRepositoryItem(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            Row (
+            Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Column (
+                Column(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
@@ -150,10 +151,16 @@ fun FavouriteRepositoryItem(
                     text = it,
                     fontWeight = FontWeight.Medium,
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primaryFixed,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     maxLines = 1,
                     softWrap = false,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .padding(8.dp)
                 )
             }
             favouriteRepository.latestRelease?.let {

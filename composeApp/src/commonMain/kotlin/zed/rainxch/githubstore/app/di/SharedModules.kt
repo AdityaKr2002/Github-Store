@@ -14,6 +14,7 @@ import zed.rainxch.githubstore.core.data.data_source.TokenDataSource
 import zed.rainxch.githubstore.core.data.local.db.AppDatabase
 import zed.rainxch.githubstore.core.data.repository.FavouritesRepositoryImpl
 import zed.rainxch.githubstore.core.data.repository.InstalledAppsRepositoryImpl
+import zed.rainxch.githubstore.core.data.repository.StarredRepositoryImpl
 import zed.rainxch.githubstore.core.data.repository.ThemesRepositoryImpl
 import zed.rainxch.githubstore.core.domain.getPlatform
 import zed.rainxch.githubstore.core.domain.repository.FavouritesRepository
@@ -31,8 +32,9 @@ import zed.rainxch.githubstore.feature.details.domain.repository.DetailsReposito
 import zed.rainxch.githubstore.feature.details.presentation.DetailsViewModel
 import zed.rainxch.githubstore.core.data.services.Downloader
 import zed.rainxch.githubstore.core.data.services.Installer
+import zed.rainxch.githubstore.core.domain.repository.StarredRepository
 import zed.rainxch.githubstore.core.domain.use_cases.SyncInstalledAppsUseCase
-import zed.rainxch.githubstore.feature.favourites.FavouritesViewModel
+import zed.rainxch.githubstore.feature.favourites.presentation.FavouritesViewModel
 import zed.rainxch.githubstore.feature.home.data.data_source.CachedTrendingDataSource
 import zed.rainxch.githubstore.feature.home.data.repository.HomeRepositoryImpl
 import zed.rainxch.githubstore.feature.home.domain.repository.HomeRepository
@@ -43,6 +45,7 @@ import zed.rainxch.githubstore.feature.search.presentation.SearchViewModel
 import zed.rainxch.githubstore.feature.settings.data.repository.SettingsRepositoryImpl
 import zed.rainxch.githubstore.feature.settings.domain.repository.SettingsRepository
 import zed.rainxch.githubstore.feature.settings.presentation.SettingsViewModel
+import zed.rainxch.githubstore.feature.starred_repos.presentation.StarredReposViewModel
 import zed.rainxch.githubstore.network.RateLimitHandler
 
 val coreModule: Module = module {
@@ -90,6 +93,7 @@ val coreModule: Module = module {
     single { get<AppDatabase>().installedAppDao }
     single { get<AppDatabase>().favoriteRepoDao }
     single { get<AppDatabase>().updateHistoryDao }
+    single { get<AppDatabase>().starredReposDao }
 
     single<SyncInstalledAppsUseCase> {
         SyncInstalledAppsUseCase(
@@ -248,6 +252,26 @@ val settingsModule: Module = module {
             browserHelper = get(),
             themesRepository = get(),
             settingsRepository = get()
+        )
+    }
+}
+val starredReposModule: Module = module {
+    // Repository
+    single<StarredRepository> {
+        StarredRepositoryImpl(
+            httpClient = get(),
+            dao = get(),
+            installedAppsDao = get(),
+            detailsRepository = get()
+        )
+    }
+
+    // ViewModel
+    viewModel {
+        StarredReposViewModel(
+            starredRepository = get(),
+            favouritesRepository = get(),
+            tokenDataSource = get()
         )
     }
 }

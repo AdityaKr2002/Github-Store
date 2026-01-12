@@ -13,6 +13,7 @@ fun initKoin(config: KoinAppDeclaration? = null) {
             homeModule,
             searchModule,
             favouritesModule,
+            starredReposModule,
             detailsModule,
             settingsModule,
             appsModule

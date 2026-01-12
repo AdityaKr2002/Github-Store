@@ -1,4 +1,4 @@
-package zed.rainxch.githubstore.feature.favourites
+package zed.rainxch.githubstore.feature.favourites.presentation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,7 +34,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import zed.rainxch.githubstore.core.presentation.theme.GithubStoreTheme
-import zed.rainxch.githubstore.feature.favourites.components.FavouriteRepositoryItem
+import zed.rainxch.githubstore.feature.favourites.presentation.components.FavouriteRepositoryItem
 
 @Composable
 fun FavouritesRoot(
@@ -102,7 +102,7 @@ fun FavouritesScreen(
                         onItemClick = {
                             onAction(FavouritesAction.OnRepositoryClick(repo))
                         },
-                        modifier = Modifier.animateItem()
+                        modifier = Modifier.Companion.animateItem()
                     )
                 }
             }

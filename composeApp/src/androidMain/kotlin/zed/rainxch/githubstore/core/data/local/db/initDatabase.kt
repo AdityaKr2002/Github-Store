@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import kotlinx.coroutines.Dispatchers
 import zed.rainxch.githubstore.core.data.local.db.migrations.MIGRATION_1_2
+import zed.rainxch.githubstore.core.data.local.db.migrations.MIGRATION_2_3
 
 fun initDatabase(context: Context): AppDatabase {
     val appContext = context.applicationContext
@@ -14,6 +15,9 @@ fun initDatabase(context: Context): AppDatabase {
             name = dbFile.absolutePath
         )
         .setQueryCoroutineContext(Dispatchers.IO)
-        .addMigrations(MIGRATION_1_2)
+        .addMigrations(
+            MIGRATION_1_2,
+            MIGRATION_2_3,
+        )
         .build()
 }
