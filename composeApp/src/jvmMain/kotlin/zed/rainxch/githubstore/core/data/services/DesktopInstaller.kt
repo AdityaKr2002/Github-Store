@@ -78,8 +78,8 @@ class DesktopInstaller(
             PlatformType.MACOS -> listOf(".dmg", ".pkg")
             PlatformType.LINUX -> {
                 when (linuxPackageType) {
-                    LinuxPackageType.DEB -> listOf(".deb", ".appimage", ".rpm")
-                    LinuxPackageType.RPM -> listOf(".rpm", ".appimage", ".deb")
+                    LinuxPackageType.DEB -> listOf(".appimage", ".deb", ".rpm")
+                    LinuxPackageType.RPM -> listOf(".appimage", ".rpm", ".deb")
                     LinuxPackageType.UNIVERSAL -> listOf(".appimage", ".deb", ".rpm")
                 }
             }
