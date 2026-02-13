@@ -16,6 +16,7 @@ kotlin {
                 implementation(compose.components.resources)
 
                 implementation(libs.bundles.landscapist)
+                implementation(libs.liquid)
             }
         }
 

@@ -57,6 +57,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.skydoves.landscapist.coil3.CoilImage
+import io.github.fletchmckee.liquid.liquefiable
 import zed.rainxch.githubstore.core.presentation.res.*
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -65,6 +66,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import zed.rainxch.apps.presentation.model.AppItem
 import zed.rainxch.apps.presentation.model.UpdateAllProgress
 import zed.rainxch.apps.presentation.model.UpdateState
+import zed.rainxch.core.presentation.locals.LocalBottomNavigationLiquid
 import zed.rainxch.core.presentation.theme.GithubStoreTheme
 import zed.rainxch.core.presentation.utils.ObserveAsEvents
 
@@ -121,6 +123,7 @@ fun AppsScreen(
     onAction: (AppsAction) -> Unit,
     snackbarHostState: SnackbarHostState
 ) {
+    val liquidState = LocalBottomNavigationLiquid.current
     Scaffold(
         topBar = {
             TopAppBar(
@@ -156,12 +159,14 @@ fun AppsScreen(
         },
         snackbarHost = {
             SnackbarHost(snackbarHostState)
-        }
+        },
+        modifier = Modifier.liquefiable(liquidState)
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .liquefiable(liquidState)
         ) {
             TextField(
                 value = state.searchQuery,
@@ -260,7 +265,8 @@ fun AppsScreen(
                                 onOpenClick = { onAction(AppsAction.OnOpenApp(appItem.installedApp)) },
                                 onUpdateClick = { onAction(AppsAction.OnUpdateApp(appItem.installedApp)) },
                                 onCancelClick = { onAction(AppsAction.OnCancelUpdate(appItem.installedApp.packageName)) },
-                                onRepoClick = { onAction(AppsAction.OnNavigateToRepo(appItem.installedApp.repoId)) }
+                                onRepoClick = { onAction(AppsAction.OnNavigateToRepo(appItem.installedApp.repoId)) },
+                                modifier = Modifier.liquefiable(liquidState)
                             )
                         }
                     }
@@ -331,12 +337,13 @@ fun AppItemCard(
     onOpenClick: () -> Unit,
     onUpdateClick: () -> Unit,
     onCancelClick: () -> Unit,
-    onRepoClick: () -> Unit
+    onRepoClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val app = appItem.installedApp
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         onClick = onRepoClick
     ) {
         Column(

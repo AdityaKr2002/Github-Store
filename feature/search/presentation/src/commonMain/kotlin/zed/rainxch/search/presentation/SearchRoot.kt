@@ -57,6 +57,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.fletchmckee.liquid.liquefiable
 import zed.rainxch.githubstore.core.presentation.res.*
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
@@ -64,6 +65,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import zed.rainxch.core.domain.model.GithubRepoSummary
 import zed.rainxch.core.presentation.components.RepositoryCard
+import zed.rainxch.core.presentation.locals.LocalBottomNavigationLiquid
 import zed.rainxch.core.presentation.theme.GithubStoreTheme
 import zed.rainxch.domain.model.ProgrammingLanguage
 import zed.rainxch.domain.model.SearchPlatform
@@ -124,6 +126,7 @@ fun SearchScreen(
 ) {
     val focusRequester = remember { FocusRequester() }
     val listState = rememberLazyStaggeredGridState()
+    val liquidState = LocalBottomNavigationLiquid.current
 
     val shouldLoadMore by remember {
         derivedStateOf {
@@ -187,14 +190,15 @@ fun SearchScreen(
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             SearchTopbar(
                 onAction = onAction,
                 state = state,
                 focusRequester = focusRequester
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background,
+        modifier = Modifier.liquefiable(liquidState)
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -334,7 +338,9 @@ fun SearchScreen(
                         verticalItemSpacing = 12.dp,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .liquefiable(liquidState)
                     ) {
                         items(
                             items = state.repositories,
@@ -348,7 +354,9 @@ fun SearchScreen(
                                 onDeveloperClick = { username ->
                                     onAction(SearchAction.OnRepositoryDeveloperClick(username))
                                 },
-                                modifier = Modifier.animateItem()
+                                modifier = Modifier
+                                    .animateItem()
+                                    .liquefiable(liquidState)
                             )
                         }
 
