@@ -102,12 +102,21 @@ class DeveloperProfileViewModel(
                             )
                         }
                     }
-            } catch (e: RateLimitException) {
+            } catch (_: RateLimitException) {
                 _state.update {
                     it.copy(isLoading = false, isLoadingRepos = false)
                 }
             } catch (e: CancellationException) {
                 throw e
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        isLoadingRepos = false,
+                        errorMessage = e.message ?: "Unexpected error"
+                    )
+                }
+
             }
         }
     }

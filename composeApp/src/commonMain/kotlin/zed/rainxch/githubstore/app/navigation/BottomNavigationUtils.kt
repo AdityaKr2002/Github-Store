@@ -26,6 +26,8 @@ import githubstore.composeapp.generated.resources.search_repositories_hint
 import githubstore.composeapp.generated.resources.settings_title
 import githubstore.composeapp.generated.resources.stars
 import org.jetbrains.compose.resources.StringResource
+import zed.rainxch.core.domain.getPlatform
+import zed.rainxch.core.domain.model.Platform
 
 data class BottomNavigationItem(
     val titleRes: StringResource,
@@ -62,10 +64,10 @@ object BottomNavigationUtils {
         )
     )
 
-    fun allowedScreens(): List<GithubStoreGraph> = listOf(
-        GithubStoreGraph.HomeScreen,
-        GithubStoreGraph.SearchScreen,
-        GithubStoreGraph.AppsScreen,
-        GithubStoreGraph.SettingsScreen,
-    )
+    fun allowedScreens(): List<GithubStoreGraph> = items()
+        .filterNot {
+            getPlatform() != Platform.ANDROID &&
+                    it.screen == GithubStoreGraph.AppsScreen
+        }
+        .map { it.screen }
 }

@@ -78,12 +78,14 @@ class DetailsViewModel(
     private val _events = Channel<DetailsEvent>()
     val events = _events.receiveAsFlow()
 
-    val rateLimited = AtomicBoolean(false)
+    private val rateLimited = AtomicBoolean(false)
 
     @OptIn(ExperimentalTime::class)
     private fun loadInitial() {
         viewModelScope.launch {
             try {
+                rateLimited.set(false)
+
                 _state.value = _state.value.copy(isLoading = true, errorMessage = null)
 
                 val syncResult = syncInstalledAppsUseCase()

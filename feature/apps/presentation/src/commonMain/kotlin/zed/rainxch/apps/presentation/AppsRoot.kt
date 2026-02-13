@@ -166,7 +166,6 @@ fun AppsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .liquefiable(liquidState)
         ) {
             TextField(
                 value = state.searchQuery,

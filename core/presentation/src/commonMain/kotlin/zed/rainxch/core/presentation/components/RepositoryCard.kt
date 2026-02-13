@@ -48,6 +48,7 @@ import zed.rainxch.core.domain.model.GithubRepoSummary
 import zed.rainxch.core.domain.model.GithubUser
 import zed.rainxch.core.presentation.model.DiscoveryRepository
 import zed.rainxch.core.presentation.theme.GithubStoreTheme
+import zed.rainxch.core.presentation.utils.formatReleasedAt
 import zed.rainxch.core.presentation.utils.formatUpdatedAt
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -220,7 +221,7 @@ fun RepositoryCard(
                 Spacer(Modifier.height(12.dp))
 
                 Text(
-                    text = formatUpdatedAt(discoveryRepository.repository.updatedAt),
+                    text = formatReleasedAt(discoveryRepository.repository.updatedAt),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.outline,
                     maxLines = 1,
