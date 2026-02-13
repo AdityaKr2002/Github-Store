@@ -136,7 +136,7 @@ class StarredReposViewModel (
                 // Handled in composable
             }
 
-            is StarredReposAction.OnSingInClick -> {
+            is StarredReposAction.OnSignInClick -> {
                 // Handled in composable
             }
 

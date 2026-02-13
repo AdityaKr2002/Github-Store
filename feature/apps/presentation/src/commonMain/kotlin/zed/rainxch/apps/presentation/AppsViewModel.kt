@@ -290,9 +290,12 @@ class AppsViewModel(
                 cleanupUpdate(app.packageName, app.latestAssetName)
                 updateAppState(app.packageName, UpdateState.Idle)
                 throw e
-            } catch (e: RateLimitException) {
+            } catch (_: RateLimitException) {
                 logger.debug("Rate limited during update for ${app.packageName}")
                 updateAppState(app.packageName, UpdateState.Idle)
+                _events.send(
+                    AppsEvent.ShowError(getString(Res.string.rate_limit_exceeded))
+                )
             } catch (e: Exception) {
                 logger.error("Update failed for ${app.packageName}: ${e.message}")
                 cleanupUpdate(app.packageName, app.latestAssetName)

@@ -227,7 +227,15 @@ class SearchViewModel(
                     it.copy(isLoading = false, isLoadingMore = false)
                 }
             } catch (e: RateLimitException) {
-                logger.debug("Rate limit exceed: ${e.message}")
+                logger.debug("Rate limit exceeded: ${e.message}")
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        isLoadingMore = false,
+                        errorMessage = e.message
+                    )
+                }
+
             } catch (e: CancellationException) {
                 logger.debug("Search cancelled (expected): ${e.message}")
             } catch (e: Exception) {

@@ -255,7 +255,7 @@ class DetailsViewModel(
                 logger.error("Rate limited: ${e.message}")
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    errorMessage = null
+                    errorMessage = getString(Res.string.rate_limit_exceeded)
                 )
             } catch (t: Throwable) {
                 logger.error("Details load failed: ${t.message}")

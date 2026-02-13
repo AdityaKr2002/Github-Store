@@ -70,7 +70,7 @@ fun StarredReposRoot(
                 StarredReposAction.OnNavigateBackClick -> onNavigateBack()
                 is StarredReposAction.OnRepositoryClick -> onNavigateToDetails(action.repository.repoId)
                 is StarredReposAction.OnDeveloperProfileClick -> onNavigateToDeveloperProfile(action.username)
-                StarredReposAction.OnSingInClick -> onNavigateToAuthentication()
+                StarredReposAction.OnSignInClick -> onNavigateToAuthentication()
                 else -> viewModel.onAction(action)
             }
         }
@@ -108,7 +108,7 @@ fun StarredScreen(
                         icon = Icons.Default.Star,
                         actionText = stringResource(Res.string.sign_in_with_github),
                         onActionClick = {
-                            onAction(StarredReposAction.OnSingInClick)
+                            onAction(StarredReposAction.OnSignInClick)
                         },
                         modifier = Modifier.align(Alignment.Center)
                     )

@@ -113,7 +113,7 @@ class DeveloperProfileViewModel(
                     it.copy(
                         isLoading = false,
                         isLoadingRepos = false,
-                        errorMessage = e.message ?: "Unexpected error"
+                        errorMessage = e.message
                     )
                 }
 
