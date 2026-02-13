@@ -35,3 +35,9 @@ kotlin {
     }
 
 }
+
+compose.resources {
+    publicResClass = true
+    packageOfResClass = "zed.rainxch.githubstore.core.presentation.res"
+    generateResClass = auto
+}

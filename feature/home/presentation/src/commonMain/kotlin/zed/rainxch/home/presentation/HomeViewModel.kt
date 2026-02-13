@@ -2,9 +2,6 @@ package zed.rainxch.home.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import githubstore.feature.home.presentation.generated.resources.Res
-import githubstore.feature.home.presentation.generated.resources.home_failed_to_load_repositories
-import githubstore.feature.home.presentation.generated.resources.no_repositories_found
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +19,7 @@ import zed.rainxch.core.domain.repository.InstalledAppsRepository
 import zed.rainxch.core.domain.repository.StarredRepository
 import zed.rainxch.core.domain.use_cases.SyncInstalledAppsUseCase
 import zed.rainxch.core.presentation.model.DiscoveryRepository
+import zed.rainxch.githubstore.core.presentation.res.*
 import zed.rainxch.home.domain.repository.HomeRepository
 import zed.rainxch.home.domain.model.HomeCategory
 

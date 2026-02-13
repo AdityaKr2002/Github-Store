@@ -4,9 +4,7 @@ package zed.rainxch.devprofile.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import githubstore.feature.dev_profile.presentation.generated.resources.Res
-import githubstore.feature.dev_profile.presentation.generated.resources.failed_to_load_profile
-import githubstore.feature.dev_profile.presentation.generated.resources.failed_to_load_repositories
+import zed.rainxch.githubstore.core.presentation.res.*
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

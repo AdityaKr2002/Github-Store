@@ -162,8 +162,8 @@
     <string name="error_file_not_found">Archivo descargado no encontrado</string>
 
     <string name="home_category_trending">Tendencias</string>
-    <string name="home_category_new">Nuevos</string>
-    <string name="home_category_recently_updated">Actualizados recientemente</string>
+    <string name="home_category_hot_release">Lanzamiento en caliente</string>
+    <string name="home_category_most_popular">Los más populares</string>
 
     <string name="home_finding_repositories">Buscando repositorios...</string>
     <string name="home_loading_more">Cargando...</string>

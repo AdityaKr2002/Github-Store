@@ -4,8 +4,7 @@ package zed.rainxch.starred.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import githubstore.feature.starred.presentation.generated.resources.Res
-import githubstore.feature.starred.presentation.generated.resources.sync_starred_failed
+import zed.rainxch.githubstore.core.presentation.res.*
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

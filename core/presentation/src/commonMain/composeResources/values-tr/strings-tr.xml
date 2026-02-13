@@ -214,8 +214,8 @@
     <string name="error_file_not_found">İndirilen dosya bulunamadı</string>
 
     <string name="home_category_trending">Trendler</string>
-    <string name="home_category_new">Yeni</string>
-    <string name="home_category_recently_updated">Yakında güncellenenler</string>
+    <string name="home_category_hot_release">Yeni sürüm</string>
+    <string name="home_category_most_popular">En popüler</string>
 
     <string name="home_finding_repositories">Repolar bulunuyor...</string>
     <string name="home_loading_more">Daha fazla yükleniyor...</string>

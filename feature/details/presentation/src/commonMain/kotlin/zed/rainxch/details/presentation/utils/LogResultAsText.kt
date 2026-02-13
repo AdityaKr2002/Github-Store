@@ -1,18 +1,7 @@
 package zed.rainxch.details.presentation.utils
 
 import androidx.compose.runtime.Composable
-import githubstore.feature.details.presentation.generated.resources.log_cancelled
-import githubstore.feature.details.presentation.generated.resources.log_download_started
-import githubstore.feature.details.presentation.generated.resources.log_downloaded
-import githubstore.feature.details.presentation.generated.resources.log_error
-import githubstore.feature.details.presentation.generated.resources.log_error_with_message
-import githubstore.feature.details.presentation.generated.resources.log_install_started
-import githubstore.feature.details.presentation.generated.resources.log_installed
-import githubstore.feature.details.presentation.generated.resources.log_opened_appmanager
-import githubstore.feature.details.presentation.generated.resources.log_prepare_appmanager
-import githubstore.feature.details.presentation.generated.resources.log_update_started
-import githubstore.feature.details.presentation.generated.resources.log_updated
-import githubstore.feature.details.presentation.generated.resources.Res
+import zed.rainxch.githubstore.core.presentation.res.*
 import org.jetbrains.compose.resources.stringResource
 import zed.rainxch.details.presentation.model.LogResult
 

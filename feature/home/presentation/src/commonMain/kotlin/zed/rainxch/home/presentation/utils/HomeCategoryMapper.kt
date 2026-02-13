@@ -1,10 +1,10 @@
 package zed.rainxch.home.presentation.utils
 
 import androidx.compose.runtime.Composable
-import githubstore.feature.home.presentation.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
 import zed.rainxch.home.domain.model.HomeCategory
 import zed.rainxch.home.domain.model.HomeCategory.*
+import zed.rainxch.githubstore.core.presentation.res.*
 
 @Composable
 fun HomeCategory.displayText(): String {

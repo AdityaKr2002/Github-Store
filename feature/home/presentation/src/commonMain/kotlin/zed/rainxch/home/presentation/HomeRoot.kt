@@ -44,13 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import githubstore.feature.home.presentation.generated.resources.Res
-import githubstore.feature.home.presentation.generated.resources.app_icon
-import githubstore.feature.home.presentation.generated.resources.app_name
-import githubstore.feature.home.presentation.generated.resources.home_finding_repositories
-import githubstore.feature.home.presentation.generated.resources.home_loading_more
-import githubstore.feature.home.presentation.generated.resources.home_no_more_repositories
-import githubstore.feature.home.presentation.generated.resources.home_retry
+import zed.rainxch.githubstore.core.presentation.res.*
 import io.github.fletchmckee.liquid.LiquidState
 import io.github.fletchmckee.liquid.liquefiable
 import io.github.fletchmckee.liquid.rememberLiquidState
@@ -63,6 +57,7 @@ import zed.rainxch.core.presentation.components.GithubStoreButton
 import zed.rainxch.core.presentation.components.RepositoryCard
 import zed.rainxch.core.presentation.locals.LocalBottomNavigationLiquid
 import zed.rainxch.core.presentation.theme.GithubStoreTheme
+import zed.rainxch.githubstore.core.presentation.res.*
 import zed.rainxch.home.presentation.components.HomeFilterChips
 import zed.rainxch.home.domain.model.HomeCategory
 

@@ -215,8 +215,8 @@
     <string name="error_file_not_found">File scaricato non trovato</string>
 
     <string name="home_category_trending">In tendenza</string>
-    <string name="home_category_new">Nuovi</string>
-    <string name="home_category_recently_updated">Aggiornate di recente</string>
+    <string name="home_category_hot_release">Rilascio a caldo</string>
+    <string name="home_category_most_popular">I più popolari</string>
 
     <string name="home_finding_repositories">Ricerca di repositories...</string>
     <string name="home_loading_more">Caricamento in corso...</string>

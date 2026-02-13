@@ -179,8 +179,8 @@
     <string name="error_file_not_found">Nie znaleziono pobranego pliku</string>
 
     <string name="home_category_trending">Na czasie</string>
-    <string name="home_category_new">Nowe</string>
-    <string name="home_category_recently_updated">Ostatnio zaktualizowane</string>
+    <string name="home_category_hot_release">Gorące wydanie</string>
+    <string name="home_category_most_popular">Najpopularniejsze</string>
 
     <string name="home_finding_repositories">Wyszukiwanie repozytoriów...</string>
     <string name="home_loading_more">Ładowanie więcej...</string>

@@ -27,10 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import githubstore.feature.settings.presentation.generated.resources.logout_success
-import githubstore.feature.settings.presentation.generated.resources.navigate_back
-import githubstore.feature.settings.presentation.generated.resources.settings_title
-import githubstore.feature.settings.presentation.generated.resources.Res
+import zed.rainxch.githubstore.core.presentation.res.*
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource

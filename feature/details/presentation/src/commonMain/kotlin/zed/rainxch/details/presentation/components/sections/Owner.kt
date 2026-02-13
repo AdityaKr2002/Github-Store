@@ -31,11 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.skydoves.landscapist.coil3.CoilImage
-import githubstore.feature.details.presentation.generated.resources.Res
-import githubstore.feature.details.presentation.generated.resources.author
-import githubstore.feature.details.presentation.generated.resources.ic_github
-import githubstore.feature.details.presentation.generated.resources.open_developer_profile
-import githubstore.feature.details.presentation.generated.resources.profile
+import zed.rainxch.githubstore.core.presentation.res.*
 import io.github.fletchmckee.liquid.liquefiable
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource

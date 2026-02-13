@@ -2,9 +2,7 @@ package zed.rainxch.auth.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import githubstore.feature.auth.presentation.generated.resources.Res
-import githubstore.feature.auth.presentation.generated.resources.enter_code_on_github
-import githubstore.feature.auth.presentation.generated.resources.error_unknown
+import zed.rainxch.githubstore.core.presentation.res.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

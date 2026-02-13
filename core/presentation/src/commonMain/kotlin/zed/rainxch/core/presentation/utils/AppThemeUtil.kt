@@ -3,13 +3,7 @@ package zed.rainxch.core.presentation.utils
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import githubstore.core.presentation.generated.resources.Res
-import githubstore.core.presentation.generated.resources.theme_amber
-import githubstore.core.presentation.generated.resources.theme_dynamic
-import githubstore.core.presentation.generated.resources.theme_forest
-import githubstore.core.presentation.generated.resources.theme_ocean
-import githubstore.core.presentation.generated.resources.theme_purple
-import githubstore.core.presentation.generated.resources.theme_slate
+import zed.rainxch.githubstore.core.presentation.res.*
 import org.jetbrains.compose.resources.stringResource
 import zed.rainxch.core.domain.model.AppTheme
 import zed.rainxch.core.domain.model.AppTheme.AMBER

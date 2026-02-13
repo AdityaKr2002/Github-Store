@@ -162,8 +162,8 @@
     <string name="error_file_not_found">Fichier téléchargé introuvable</string>
 
     <string name="home_category_trending">Tendances</string>
-    <string name="home_category_new">Nouveaux</string>
-    <string name="home_category_recently_updated">Récemment mis à jour</string>
+    <string name="home_category_hot_release">Sortie en salles</string>
+    <string name="home_category_most_popular">Les plus populaires</string>
 
     <string name="home_finding_repositories">Recherche de dépôts...</string>
     <string name="home_loading_more">Chargement...</string>

@@ -9,9 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import githubstore.feature.details.presentation.generated.resources.Res
-import githubstore.feature.details.presentation.generated.resources.error_loading_details
-import githubstore.feature.details.presentation.generated.resources.retry
+import zed.rainxch.githubstore.core.presentation.res.*
 import org.jetbrains.compose.resources.stringResource
 import zed.rainxch.core.presentation.components.GithubStoreButton
 import zed.rainxch.details.presentation.DetailsAction

@@ -26,8 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import githubstore.feature.settings.presentation.generated.resources.Res
-import githubstore.feature.settings.presentation.generated.resources.logout
+import zed.rainxch.githubstore.core.presentation.res.*
 import org.jetbrains.compose.resources.stringResource
 import zed.rainxch.settings.presentation.SettingsAction
 

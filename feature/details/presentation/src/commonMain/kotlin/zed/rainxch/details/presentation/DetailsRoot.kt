@@ -41,15 +41,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import githubstore.feature.details.presentation.generated.resources.Res
-import githubstore.feature.details.presentation.generated.resources.add_to_favourites
-import githubstore.feature.details.presentation.generated.resources.navigate_back
-import githubstore.feature.details.presentation.generated.resources.open_repository
-import githubstore.feature.details.presentation.generated.resources.remove_from_favourites
-import githubstore.feature.details.presentation.generated.resources.repository_not_starred
-import githubstore.feature.details.presentation.generated.resources.repository_starred
-import githubstore.feature.details.presentation.generated.resources.star_from_github
-import githubstore.feature.details.presentation.generated.resources.unstar_from_github
+import zed.rainxch.githubstore.core.presentation.res.*
 import io.github.fletchmckee.liquid.LiquidState
 import io.github.fletchmckee.liquid.liquefiable
 import io.github.fletchmckee.liquid.liquid

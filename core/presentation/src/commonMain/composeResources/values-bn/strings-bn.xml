@@ -215,8 +215,8 @@
     <string name="error_file_not_found">ডাউনলোড করা ফাইল পাওয়া যায়নি</string>
 
     <string name="home_category_trending">ট্রেন্ডিং</string>
-    <string name="home_category_new">নতুন</string>
-    <string name="home_category_recently_updated">সাম্প্রতিক আপডেট</string>
+    <string name="home_category_hot_release">হট রিলিজ</string>
+    <string name="home_category_most_popular">সবচেয়ে জনপ্রিয়</string>
 
     <string name="home_finding_repositories">রিপোজিটরি খোঁজা হচ্ছে...</string>
     <string name="home_loading_more">আরও লোড হচ্ছে...</string>

@@ -1,38 +1,9 @@
 package zed.rainxch.search.presentation.utils
 
-import githubstore.feature.search.presentation.generated.resources.Res
-import githubstore.feature.search.presentation.generated.resources.language_all
-import githubstore.feature.search.presentation.generated.resources.language_c
-import githubstore.feature.search.presentation.generated.resources.language_cpp
-import githubstore.feature.search.presentation.generated.resources.language_csharp
-import githubstore.feature.search.presentation.generated.resources.language_dart
-import githubstore.feature.search.presentation.generated.resources.language_go
-import githubstore.feature.search.presentation.generated.resources.language_java
-import githubstore.feature.search.presentation.generated.resources.language_javascript
-import githubstore.feature.search.presentation.generated.resources.language_kotlin
-import githubstore.feature.search.presentation.generated.resources.language_php
-import githubstore.feature.search.presentation.generated.resources.language_python
-import githubstore.feature.search.presentation.generated.resources.language_ruby
-import githubstore.feature.search.presentation.generated.resources.language_rust
-import githubstore.feature.search.presentation.generated.resources.language_swift
-import githubstore.feature.search.presentation.generated.resources.language_typescript
+import zed.rainxch.githubstore.core.presentation.res.*
 import org.jetbrains.compose.resources.StringResource
 import zed.rainxch.domain.model.ProgrammingLanguage
-import zed.rainxch.domain.model.ProgrammingLanguage.All
-import zed.rainxch.domain.model.ProgrammingLanguage.C
-import zed.rainxch.domain.model.ProgrammingLanguage.CPlusPlus
-import zed.rainxch.domain.model.ProgrammingLanguage.CSharp
-import zed.rainxch.domain.model.ProgrammingLanguage.Dart
-import zed.rainxch.domain.model.ProgrammingLanguage.Go
-import zed.rainxch.domain.model.ProgrammingLanguage.Java
-import zed.rainxch.domain.model.ProgrammingLanguage.JavaScript
-import zed.rainxch.domain.model.ProgrammingLanguage.Kotlin
-import zed.rainxch.domain.model.ProgrammingLanguage.PHP
-import zed.rainxch.domain.model.ProgrammingLanguage.Python
-import zed.rainxch.domain.model.ProgrammingLanguage.Ruby
-import zed.rainxch.domain.model.ProgrammingLanguage.Rust
-import zed.rainxch.domain.model.ProgrammingLanguage.Swift
-import zed.rainxch.domain.model.ProgrammingLanguage.TypeScript
+import zed.rainxch.domain.model.ProgrammingLanguage.*
 
 fun ProgrammingLanguage.label(): StringResource = when (this) {
     All -> Res.string.language_all

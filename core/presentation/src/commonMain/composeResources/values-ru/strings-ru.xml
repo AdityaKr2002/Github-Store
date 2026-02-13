@@ -180,8 +180,8 @@
     <string name="error_file_not_found">Загруженный файл не найден</string>
 
     <string name="home_category_trending">В тренде</string>
-    <string name="home_category_new">Новые</string>
-    <string name="home_category_recently_updated">Недавно обновлённые</string>
+    <string name="home_category_hot_release">Горячий релиз</string>
+    <string name="home_category_most_popular">Самые популярные</string>
 
     <string name="home_finding_repositories">Поиск репозиториев...</string>
     <string name="home_loading_more">Загрузка...</string>

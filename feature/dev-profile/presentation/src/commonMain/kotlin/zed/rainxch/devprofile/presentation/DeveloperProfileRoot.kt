@@ -39,16 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import githubstore.feature.dev_profile.presentation.generated.resources.dismiss
-import githubstore.feature.dev_profile.presentation.generated.resources.error_generic
-import githubstore.feature.dev_profile.presentation.generated.resources.navigate_back
-import githubstore.feature.dev_profile.presentation.generated.resources.no_favorite_repos
-import githubstore.feature.dev_profile.presentation.generated.resources.no_installed_repos
-import githubstore.feature.dev_profile.presentation.generated.resources.no_repos_with_releases
-import githubstore.feature.dev_profile.presentation.generated.resources.no_repositories_found
-import githubstore.feature.dev_profile.presentation.generated.resources.open_repository
-import githubstore.feature.dev_profile.presentation.generated.resources.retry
-import githubstore.feature.dev_profile.presentation.generated.resources.Res
+import zed.rainxch.githubstore.core.presentation.res.*
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import zed.rainxch.core.presentation.components.GithubStoreButton

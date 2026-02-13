@@ -41,11 +41,7 @@ import androidx.compose.ui.unit.dp
 import com.skydoves.landscapist.coil3.CoilImage
 import com.skydoves.landscapist.components.rememberImageComponent
 import com.skydoves.landscapist.crossfade.CrossfadePlugin
-import githubstore.core.presentation.generated.resources.Res
-import githubstore.core.presentation.generated.resources.home_view_details
-import githubstore.core.presentation.generated.resources.installed
-import githubstore.core.presentation.generated.resources.open_in_browser
-import githubstore.core.presentation.generated.resources.update_available
+import zed.rainxch.githubstore.core.presentation.res.*
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import zed.rainxch.core.domain.model.GithubRepoSummary

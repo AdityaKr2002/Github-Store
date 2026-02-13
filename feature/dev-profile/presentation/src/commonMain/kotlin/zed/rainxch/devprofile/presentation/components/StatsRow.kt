@@ -14,10 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import githubstore.feature.dev_profile.presentation.generated.resources.followers
-import githubstore.feature.dev_profile.presentation.generated.resources.following
-import githubstore.feature.dev_profile.presentation.generated.resources.repositories
-import githubstore.feature.dev_profile.presentation.generated.resources.Res
+import zed.rainxch.githubstore.core.presentation.res.*
 import org.jetbrains.compose.resources.stringResource
 import zed.rainxch.core.presentation.utils.formatCount
 import zed.rainxch.devprofile.domain.model.DeveloperProfile

@@ -18,8 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mikepenz.markdown.compose.Markdown
-import githubstore.feature.details.presentation.generated.resources.Res
-import githubstore.feature.details.presentation.generated.resources.about_this_app
+import zed.rainxch.githubstore.core.presentation.res.*
 import io.github.fletchmckee.liquid.liquefiable
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.jetbrains.compose.resources.stringResource

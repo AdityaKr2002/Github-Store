@@ -39,13 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil3.CoilImage
-import githubstore.feature.starred.presentation.generated.resources.add_to_favourites
-import githubstore.feature.starred.presentation.generated.resources.forks
-import githubstore.feature.starred.presentation.generated.resources.installed
-import githubstore.feature.starred.presentation.generated.resources.issues
-import githubstore.feature.starred.presentation.generated.resources.remove_from_favourites
-import githubstore.feature.starred.presentation.generated.resources.stars
-import githubstore.feature.starred.presentation.generated.resources.Res
+import zed.rainxch.githubstore.core.presentation.res.*
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import zed.rainxch.core.presentation.theme.GithubStoreTheme

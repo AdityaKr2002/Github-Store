@@ -2,13 +2,7 @@ package zed.rainxch.apps.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import githubstore.feature.apps.presentation.generated.resources.Res
-import githubstore.feature.apps.presentation.generated.resources.all_apps_updated_successfully
-import githubstore.feature.apps.presentation.generated.resources.cannot_launch
-import githubstore.feature.apps.presentation.generated.resources.failed_to_open
-import githubstore.feature.apps.presentation.generated.resources.failed_to_update
-import githubstore.feature.apps.presentation.generated.resources.no_updates_available
-import githubstore.feature.apps.presentation.generated.resources.update_all_failed
+import zed.rainxch.githubstore.core.presentation.res.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel

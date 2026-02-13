@@ -43,16 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import githubstore.feature.starred.presentation.generated.resources.dismiss
-import githubstore.feature.starred.presentation.generated.resources.last_synced
-import githubstore.feature.starred.presentation.generated.resources.navigate_back
-import githubstore.feature.starred.presentation.generated.resources.no_starred_repos
-import githubstore.feature.starred.presentation.generated.resources.retry
-import githubstore.feature.starred.presentation.generated.resources.sign_in_required
-import githubstore.feature.starred.presentation.generated.resources.sign_in_with_github_for_stars
-import githubstore.feature.starred.presentation.generated.resources.star_repos_hint
-import githubstore.feature.starred.presentation.generated.resources.starred_repositories
-import githubstore.feature.starred.presentation.generated.resources.Res
+import zed.rainxch.githubstore.core.presentation.res.*
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview

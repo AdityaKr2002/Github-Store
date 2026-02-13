@@ -2,10 +2,7 @@ package zed.rainxch.details.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import githubstore.feature.details.presentation.generated.resources.Res
-import githubstore.feature.details.presentation.generated.resources.added_to_favourites
-import githubstore.feature.details.presentation.generated.resources.installer_saved_downloads
-import githubstore.feature.details.presentation.generated.resources.removed_from_favourites
+import zed.rainxch.githubstore.core.presentation.res.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel

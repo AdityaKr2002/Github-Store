@@ -2,9 +2,7 @@ package zed.rainxch.search.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import githubstore.feature.search.presentation.generated.resources.no_repositories_found
-import githubstore.feature.search.presentation.generated.resources.search_failed
-import githubstore.feature.search.presentation.generated.resources.Res
+import zed.rainxch.githubstore.core.presentation.res.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
