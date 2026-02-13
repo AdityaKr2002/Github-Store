@@ -126,21 +126,28 @@ fun BottomNavigation(
             modifier = Modifier
                 .clip(CircleShape)
                 .background(
-                    MaterialTheme.colorScheme.surfaceContainerHighest.copy(
-                        alpha = if (isDarkTheme) .25f else .15f
-                    )
-                )
-                .liquid(liquidState) {
-                    this.shape = CircleShape
                     if (isLiquidFrostAvailable()) {
-                        this.frost = if (isDarkTheme) 12.dp else 10.dp
+                        MaterialTheme.colorScheme.surfaceContainerHighest.copy(
+                            alpha = if (isDarkTheme) .25f else .15f
+                        )
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainerHighest
                     }
-                    this.curve = if (isDarkTheme) .35f else .45f
-                    this.refraction = if (isDarkTheme) .08f else .12f
-                    this.dispersion = if (isDarkTheme) .18f else .25f
-                    this.saturation = if (isDarkTheme) .40f else .55f
-                    this.contrast = if (isDarkTheme) 1.8f else 1.6f
-                }
+                )
+                .then(
+                    if (isLiquidFrostAvailable()) {
+                        Modifier.liquid(liquidState) {
+                            this.shape = CircleShape
+                            if (isLiquidFrostAvailable()) {
+                                this.frost = if (isDarkTheme) 12.dp else 10.dp
+                            }
+                            this.curve = if (isDarkTheme) .35f else .45f
+                            this.refraction = if (isDarkTheme) .08f else .12f
+                            this.dispersion = if (isDarkTheme) .18f else .25f
+                            this.saturation = if (isDarkTheme) .40f else .55f
+                            this.contrast = if (isDarkTheme) 1.8f else 1.6f
+                        }
+                    } else Modifier)
                 .pointerInput(Unit) { }
         ) {
             val glassHighColor = if (isDarkTheme) {
