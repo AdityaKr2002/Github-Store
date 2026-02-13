@@ -6,6 +6,7 @@ sealed interface StarredReposAction {
     data object OnNavigateBackClick : StarredReposAction
     data object OnRefresh : StarredReposAction
     data object OnRetrySync : StarredReposAction
+    data object OnSingInClick : StarredReposAction
     data object OnDismissError : StarredReposAction
     data class OnRepositoryClick(val repository: StarredRepositoryUi) : StarredReposAction
     data class OnDeveloperProfileClick(val username: String) : StarredReposAction

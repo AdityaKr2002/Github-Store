@@ -26,6 +26,7 @@ import zed.rainxch.core.data.mappers.toSummary
 import zed.rainxch.core.data.network.executeRequest
 import zed.rainxch.core.domain.model.GithubRepoSummary
 import zed.rainxch.core.domain.model.PaginatedDiscoveryRepositories
+import zed.rainxch.core.domain.model.RateLimitException
 import zed.rainxch.domain.model.ProgrammingLanguage
 import zed.rainxch.domain.model.SearchPlatform
 import zed.rainxch.domain.repository.SearchRepository
@@ -169,6 +170,8 @@ class SearchRepositoryImpl(
                     )
                 }
             }
+        } catch (e: RateLimitException) {
+            throw e
         } catch (e: CancellationException) {
             throw e
         }

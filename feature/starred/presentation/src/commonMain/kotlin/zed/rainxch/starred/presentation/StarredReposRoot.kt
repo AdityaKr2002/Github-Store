@@ -58,6 +58,7 @@ fun StarredReposRoot(
     onNavigateBack: () -> Unit,
     onNavigateToDetails: (repoId: Long) -> Unit,
     onNavigateToDeveloperProfile: (username: String) -> Unit,
+    onNavigateToAuthentication: () -> Unit,
     viewModel: StarredReposViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -69,6 +70,7 @@ fun StarredReposRoot(
                 StarredReposAction.OnNavigateBackClick -> onNavigateBack()
                 is StarredReposAction.OnRepositoryClick -> onNavigateToDetails(action.repository.repoId)
                 is StarredReposAction.OnDeveloperProfileClick -> onNavigateToDeveloperProfile(action.username)
+                StarredReposAction.OnSingInClick -> onNavigateToAuthentication()
                 else -> viewModel.onAction(action)
             }
         }
@@ -104,6 +106,10 @@ fun StarredScreen(
                         title = stringResource(Res.string.sign_in_required),
                         message = stringResource(Res.string.sign_in_with_github_for_stars),
                         icon = Icons.Default.Star,
+                        actionText = stringResource(Res.string.sign_in_with_github),
+                        onActionClick = {
+                            onAction(StarredReposAction.OnSingInClick)
+                        },
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
@@ -121,7 +127,9 @@ fun StarredScreen(
                         icon = Icons.Default.Star,
                         actionText = if (state.errorMessage != null) stringResource(Res.string.retry) else null,
                         onActionClick = if (state.errorMessage != null) {
-                            { onAction(StarredReposAction.OnRetrySync) }
+                            {
+                                onAction(StarredReposAction.OnRetrySync)
+                            }
                         } else null,
                         modifier = Modifier.align(Alignment.Center)
                     )

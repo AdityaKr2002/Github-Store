@@ -26,7 +26,9 @@ import zed.rainxch.core.data.local.db.dao.StarredRepoDao
 import zed.rainxch.core.data.mappers.toDomain
 import zed.rainxch.core.data.mappers.toEntity
 import zed.rainxch.core.domain.model.Platform
+import zed.rainxch.core.domain.model.RateLimitException
 import zed.rainxch.core.domain.repository.StarredRepository
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -39,7 +41,7 @@ class StarredRepositoryImpl(
 ) : StarredRepository {
 
     companion object {
-        private const val SYNC_THRESHOLD_MS = 6 * 60 * 60 * 1000L // 6 hours
+        private const val SYNC_THRESHOLD_MS = 24 * 60 * 60 * 1000L // 24 hours
     }
 
     override fun getAllStarred(): Flow<List<zed.rainxch.core.domain.model.StarredRepository>> {
@@ -99,7 +101,6 @@ class StarredRepositoryImpl(
                 val now = Clock.System.now().toEpochMilliseconds()
                 val starredRepos = mutableListOf<zed.rainxch.core.domain.model.StarredRepository>()
 
-                // Process in parallel to avoid sequential N+1 delays
                 coroutineScope {
                     val semaphore = Semaphore(25)
                     val deferredResults = allRepos.map { repo ->
@@ -145,6 +146,10 @@ class StarredRepositoryImpl(
                 starredRepoDao.replaceAllStarred(starredRepos.map { it.toEntity() })
 
                 Result.success(Unit)
+            } catch (e: RateLimitException) {
+                throw e
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Logger.e(e) { "Failed to sync starred repos" }
                 Result.failure(e)
@@ -185,6 +190,10 @@ class StarredRepositoryImpl(
             }
 
             relevantAssets.isNotEmpty()
+        } catch (e: RateLimitException) {
+            throw e
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Logger.w(e) { "Failed to check valid assets for $owner/$repo" }
             false
