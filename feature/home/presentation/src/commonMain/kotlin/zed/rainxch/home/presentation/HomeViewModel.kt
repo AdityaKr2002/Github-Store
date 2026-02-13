@@ -4,10 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -35,6 +37,7 @@ class HomeViewModel(
 
     private var hasLoadedInitialData = false
     private var currentJob: Job? = null
+    private var switchCategoryJob: Job? = null
     private var nextPageIndex = 1
 
     private val _state = MutableStateFlow(HomeState())
@@ -57,6 +60,9 @@ class HomeViewModel(
             started = SharingStarted.WhileSubscribed(5_000L),
             initialValue = HomeState()
         )
+
+    private val _events = Channel<HomeEvent>()
+    val events = _events.receiveAsFlow()
 
     private fun syncSystemState() {
         viewModelScope.launch {
@@ -97,13 +103,14 @@ class HomeViewModel(
         }
     }
 
-    private fun loadRepos(isInitial: Boolean = false, category: HomeCategory? = null) {
+    private fun loadRepos(isInitial: Boolean = false, category: HomeCategory? = null): Job? {
+        currentJob?.cancel()
+
         if (_state.value.isLoading || _state.value.isLoadingMore) {
             logger.debug("Already loading, skipping...")
-            return
+            return null
         }
 
-        currentJob?.cancel()
 
         if (isInitial) {
             nextPageIndex = 1
@@ -113,8 +120,7 @@ class HomeViewModel(
 
         logger.debug("Loading repos: category=$targetCategory, page=$nextPageIndex, isInitial=$isInitial")
 
-        currentJob = viewModelScope.launch {
-
+        return viewModelScope.launch {
             _state.update {
                 it.copy(
                     isLoading = isInitial,
@@ -128,7 +134,10 @@ class HomeViewModel(
             try {
                 val flow = when (targetCategory) {
                     HomeCategory.TRENDING -> homeRepository.getTrendingRepositories(nextPageIndex)
-                    HomeCategory.HOT_RELEASE -> homeRepository.getHotReleaseRepositories(nextPageIndex)
+                    HomeCategory.HOT_RELEASE -> homeRepository.getHotReleaseRepositories(
+                        nextPageIndex
+                    )
+
                     HomeCategory.MOST_POPULAR -> homeRepository.getMostPopular(nextPageIndex)
                 }
 
@@ -201,6 +210,8 @@ class HomeViewModel(
                     )
                 }
             }
+        }.also {
+            currentJob = it
         }
     }
 
@@ -230,7 +241,13 @@ class HomeViewModel(
             is HomeAction.SwitchCategory -> {
                 if (_state.value.currentCategory != action.category) {
                     nextPageIndex = 1
-                    loadRepos(isInitial = true, category = action.category)
+                    switchCategoryJob?.cancel()
+                    switchCategoryJob = viewModelScope.launch {
+                        loadRepos(isInitial = true, category = action.category)?.join()
+                            ?: return@launch
+                        _events.send(HomeEvent.OnScrollToListTop)
+                    }
+
                 }
             }
 

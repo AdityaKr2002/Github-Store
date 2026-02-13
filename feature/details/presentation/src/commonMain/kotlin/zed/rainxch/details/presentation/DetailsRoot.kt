@@ -5,9 +5,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.material.icons.Icons
@@ -163,43 +166,50 @@ fun DetailsScreen(
                 return@Scaffold
             }
 
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .liquefiable(liquidTopbarState)
-                    .padding(innerPadding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                header(
-                    state = state,
-                    onAction = onAction,
-                )
-
-                state.stats?.let { stats ->
-                    stats(repoStats = stats)
-                }
-
-                state.readmeMarkdown?.let {
-                    about(
-                        readmeMarkdown = state.readmeMarkdown,
-                        readmeLanguage = state.readmeLanguage
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .widthIn(max = 680.dp)
+                        .fillMaxWidth()
+                        .liquefiable(liquidTopbarState)
+                        .padding(innerPadding),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp),
+                ) {
+                    header(
+                        state = state,
+                        onAction = onAction,
                     )
-                }
 
-                state.latestRelease?.let { latestRelease ->
-                    whatsNew(latestRelease)
-                }
+                    state.stats?.let { stats ->
+                        stats(repoStats = stats)
+                    }
 
-                state.userProfile?.let { userProfile ->
-                    author(
-                        author = userProfile,
-                        onAction = onAction
-                    )
-                }
+                    state.readmeMarkdown?.let {
+                        about(
+                            readmeMarkdown = state.readmeMarkdown,
+                            readmeLanguage = state.readmeLanguage
+                        )
+                    }
 
-                if (state.installLogs.isNotEmpty()) {
-                    logs(state)
+                    state.latestRelease?.let { latestRelease ->
+                        whatsNew(latestRelease)
+                    }
+
+                    state.userProfile?.let { userProfile ->
+                        author(
+                            author = userProfile,
+                            onAction = onAction
+                        )
+                    }
+
+                    if (state.installLogs.isNotEmpty()) {
+                        logs(state)
+                    }
                 }
             }
         }

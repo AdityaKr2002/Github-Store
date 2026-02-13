@@ -15,10 +15,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import zed.rainxch.core.domain.model.FavoriteRepo
+import zed.rainxch.core.domain.model.RateLimitException
 import zed.rainxch.core.domain.repository.FavouritesRepository
 import zed.rainxch.devprofile.domain.model.RepoFilterType
 import zed.rainxch.devprofile.domain.model.RepoSortType
 import zed.rainxch.devprofile.domain.repository.DeveloperProfileRepository
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -46,59 +48,76 @@ class DeveloperProfileViewModel(
 
     private fun loadDeveloperData() {
         viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    isLoading = true,
-                    isLoadingRepos = false,
-                    errorMessage = null
-                )
+            try {
+                _state.update {
+                    it.copy(
+                        isLoading = true,
+                        isLoadingRepos = false,
+                        errorMessage = null
+                    )
+                }
+
+                val profileResult = repository.getDeveloperProfile(username)
+                profileResult
+                    .onSuccess { profile ->
+                        _state.update {
+                            it.copy(
+                                profile = profile,
+                                isLoading = false,
+                                isLoadingRepos = true
+                            )
+                        }
+                    }
+                    .onFailure { error ->
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = error.message
+                                    ?: getString(Res.string.failed_to_load_profile)
+                            )
+                        }
+                        return@launch
+                    }
+
+                val reposResult = repository.getDeveloperRepositories(username)
+
+                reposResult
+                    .onSuccess { repos ->
+                        _state.update {
+                            it.copy(
+                                repositories = repos.toImmutableList(),
+                                isLoading = false,
+                                isLoadingRepos = false
+                            )
+                        }
+                        applyFiltersAndSort()
+                    }
+                    .onFailure { error ->
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                isLoadingRepos = false,
+                                errorMessage = error.message
+                                    ?: getString(Res.string.failed_to_load_repositories)
+                            )
+                        }
+                    }
+            } catch (_: RateLimitException) {
+                _state.update {
+                    it.copy(isLoading = false, isLoadingRepos = false)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        isLoadingRepos = false,
+                        errorMessage = e.message
+                    )
+                }
+
             }
-
-            val profileResult = repository.getDeveloperProfile(username)
-            profileResult
-                .onSuccess { profile ->
-                    _state.update {
-                        it.copy(
-                            profile = profile,
-                            isLoading = false,
-                            isLoadingRepos = true
-                        )
-                    }
-                }
-                .onFailure { error ->
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = error.message
-                                ?: getString(Res.string.failed_to_load_profile)
-                        )
-                    }
-                    return@launch
-                }
-
-            val reposResult = repository.getDeveloperRepositories(username)
-
-            reposResult
-                .onSuccess { repos ->
-                    _state.update {
-                        it.copy(
-                            repositories = repos.toImmutableList(),
-                            isLoading = false,
-                            isLoadingRepos = false
-                        )
-                    }
-                    applyFiltersAndSort()
-                }
-                .onFailure { error ->
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            isLoadingRepos = false,
-                            errorMessage = error.message
-                                ?: getString(Res.string.failed_to_load_repositories)
-                        )
-                    }
-                }
         }
     }
 

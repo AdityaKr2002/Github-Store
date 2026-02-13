@@ -13,6 +13,7 @@ import zed.rainxch.core.data.network.executeRequest
 import zed.rainxch.core.domain.logging.GitHubStoreLogger
 import zed.rainxch.core.domain.model.GithubRelease
 import zed.rainxch.core.domain.model.InstalledApp
+import zed.rainxch.core.domain.model.RateLimitException
 import zed.rainxch.core.domain.repository.InstalledAppsRepository
 import zed.rainxch.core.domain.utils.AppLauncher
 
@@ -53,13 +54,15 @@ class AppsRepositoryImpl(
                     header(HttpHeaders.Accept, "application/vnd.github+json")
                     parameter("per_page", 10)
                 }
-            }.getOrNull() ?: return null
+            }.getOrThrow()
 
             releases
                 .asSequence()
                 .filter { (it.draft != true) && (it.prerelease != true) }
                 .maxByOrNull { it.publishedAt ?: it.createdAt ?: "" }
                 ?.toDomain()
+        } catch (e: RateLimitException) {
+            throw e
         } catch (e: Exception) {
             logger.error("Failed to fetch latest release for $owner/$repo: ${e.message}")
             null

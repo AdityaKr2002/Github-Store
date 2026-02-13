@@ -78,11 +78,14 @@ class MainViewModel(
         viewModelScope.launch {
             rateLimitRepository.rateLimitState.collect { rateLimitInfo ->
                 _state.update { currentState ->
-                    currentState.copy(
-                        rateLimitInfo = rateLimitInfo,
-                        showRateLimitDialog = rateLimitInfo?.isExhausted == true,
-                    )
+                    currentState.copy(rateLimitInfo = rateLimitInfo)
                 }
+            }
+        }
+
+        viewModelScope.launch {
+            rateLimitRepository.rateLimitExhaustedEvent.collect { info ->
+                _state.update { it.copy(showRateLimitDialog = true, rateLimitInfo = info) }
             }
         }
 

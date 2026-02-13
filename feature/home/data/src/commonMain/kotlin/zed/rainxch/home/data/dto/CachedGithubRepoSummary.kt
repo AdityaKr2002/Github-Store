@@ -16,5 +16,6 @@ data class CachedGithubRepoSummary(
     val language: String?,
     val topics: List<String>?,
     val releasesUrl: String,
-    val updatedAt: String
+    val updatedAt: String,
+    val latestReleaseDate: String? = null,
 )

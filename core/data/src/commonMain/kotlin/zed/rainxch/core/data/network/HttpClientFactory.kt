@@ -15,6 +15,7 @@ import zed.rainxch.core.data.network.interceptor.RateLimitInterceptor
 import zed.rainxch.core.domain.model.RateLimitException
 import zed.rainxch.core.domain.repository.RateLimitRepository
 import java.io.IOException
+import kotlin.coroutines.cancellation.CancellationException
 
 fun createGitHubHttpClient(
     tokenStore: TokenStore,
@@ -94,7 +95,9 @@ suspend inline fun <reified T> HttpClient.executeRequest(
             )
         }
     } catch (e: RateLimitException) {
-        Result.failure(e)
+        throw e
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
         Result.failure(e)
     }

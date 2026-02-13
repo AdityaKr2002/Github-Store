@@ -136,6 +136,10 @@ class StarredReposViewModel (
                 // Handled in composable
             }
 
+            is StarredReposAction.OnSignInClick -> {
+                // Handled in composable
+            }
+
             StarredReposAction.OnRefresh -> {
                 syncStarredRepos(forceRefresh = true)
             }

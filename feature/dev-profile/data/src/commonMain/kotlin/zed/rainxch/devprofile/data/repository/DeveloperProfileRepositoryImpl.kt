@@ -19,6 +19,7 @@ import kotlinx.serialization.Serializable
 import zed.rainxch.core.data.local.db.dao.InstalledAppDao
 import zed.rainxch.core.domain.logging.GitHubStoreLogger
 import zed.rainxch.core.domain.model.Platform
+import zed.rainxch.core.domain.model.RateLimitException
 import zed.rainxch.core.domain.repository.FavouritesRepository
 import zed.rainxch.devprofile.data.dto.GitHubRepoResponse
 import zed.rainxch.devprofile.data.dto.GitHubUserResponse
@@ -48,6 +49,8 @@ class DeveloperProfileRepositoryImpl(
 
                 val userResponse: GitHubUserResponse = response.body()
                 Result.success(userResponse.toDomain())
+            } catch (e: RateLimitException) {
+                throw e
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -105,6 +108,8 @@ class DeveloperProfileRepositoryImpl(
                 }
 
                 Result.success(processedRepos)
+            }  catch (e: RateLimitException) {
+                throw e
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -174,6 +179,8 @@ class DeveloperProfileRepositoryImpl(
                 hasInstallableAssets,
                 if (hasInstallableAssets) stableRelease.tagName else null
             )
+        }  catch (e: RateLimitException) {
+            throw e
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.fletchmckee.liquid.liquefiable
 import zed.rainxch.githubstore.core.presentation.res.*
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -34,6 +35,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import zed.rainxch.core.domain.model.FontTheme
+import zed.rainxch.core.presentation.locals.LocalBottomNavigationLiquid
 import zed.rainxch.core.presentation.theme.GithubStoreTheme
 import zed.rainxch.core.presentation.utils.ObserveAsEvents
 import zed.rainxch.settings.presentation.components.LogoutDialog
@@ -103,6 +105,7 @@ fun SettingsScreen(
     onAction: (SettingsAction) -> Unit,
     snackbarState: SnackbarHostState
 ) {
+    val liquidState = LocalBottomNavigationLiquid.current
     Scaffold(
         snackbarHost = {
             SnackbarHost(hostState = snackbarState)
@@ -110,7 +113,8 @@ fun SettingsScreen(
         topBar = {
             TopAppBar(onAction)
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        modifier = Modifier.liquefiable(liquidState)
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier

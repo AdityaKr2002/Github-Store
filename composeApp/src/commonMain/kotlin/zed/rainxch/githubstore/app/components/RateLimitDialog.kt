@@ -1,4 +1,4 @@
-package zed.rainxch.githubstore.app.state.components
+package zed.rainxch.githubstore.app.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,19 +17,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import githubstore.composeapp.generated.resources.Res
-import githubstore.composeapp.generated.resources.rate_limit_close
-import githubstore.composeapp.generated.resources.rate_limit_exceeded
-import githubstore.composeapp.generated.resources.rate_limit_ok
-import githubstore.composeapp.generated.resources.rate_limit_resets_in_minutes
-import githubstore.composeapp.generated.resources.rate_limit_sign_in
-import githubstore.composeapp.generated.resources.rate_limit_tip_sign_in
-import githubstore.composeapp.generated.resources.rate_limit_used_all
-import githubstore.composeapp.generated.resources.rate_limit_used_all_free
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import zed.rainxch.core.domain.model.RateLimitInfo
 import zed.rainxch.core.presentation.theme.GithubStoreTheme
+import zed.rainxch.githubstore.core.presentation.res.*
 
 @Composable
 fun RateLimitDialog(

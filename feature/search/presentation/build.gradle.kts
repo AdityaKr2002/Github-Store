@@ -12,6 +12,8 @@ kotlin {
                 implementation(projects.core.presentation)
                 implementation(projects.feature.search.domain)
 
+                implementation(libs.liquid)
+
                 implementation(compose.components.uiToolingPreview)
                 implementation(compose.components.resources)
             }

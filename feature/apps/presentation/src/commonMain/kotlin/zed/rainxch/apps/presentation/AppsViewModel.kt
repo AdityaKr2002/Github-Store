@@ -22,6 +22,7 @@ import zed.rainxch.apps.presentation.model.UpdateAllProgress
 import zed.rainxch.apps.presentation.model.UpdateState
 import zed.rainxch.core.domain.logging.GitHubStoreLogger
 import zed.rainxch.core.domain.model.InstalledApp
+import zed.rainxch.core.domain.model.RateLimitException
 import zed.rainxch.core.domain.network.Downloader
 import zed.rainxch.core.domain.repository.InstalledAppsRepository
 import zed.rainxch.core.domain.system.Installer
@@ -289,9 +290,14 @@ class AppsViewModel(
                 cleanupUpdate(app.packageName, app.latestAssetName)
                 updateAppState(app.packageName, UpdateState.Idle)
                 throw e
+            } catch (_: RateLimitException) {
+                logger.debug("Rate limited during update for ${app.packageName}")
+                updateAppState(app.packageName, UpdateState.Idle)
+                _events.send(
+                    AppsEvent.ShowError(getString(Res.string.rate_limit_exceeded))
+                )
             } catch (e: Exception) {
                 logger.error("Update failed for ${app.packageName}: ${e.message}")
-                e.printStackTrace()
                 cleanupUpdate(app.packageName, app.latestAssetName)
                 updateAppState(
                     app.packageName,

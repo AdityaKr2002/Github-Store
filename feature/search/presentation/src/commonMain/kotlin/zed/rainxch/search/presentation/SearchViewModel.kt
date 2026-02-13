@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import zed.rainxch.core.domain.logging.GitHubStoreLogger
+import zed.rainxch.core.domain.model.RateLimitException
 import zed.rainxch.core.domain.repository.FavouritesRepository
 import zed.rainxch.core.domain.repository.InstalledAppsRepository
 import zed.rainxch.core.domain.repository.StarredRepository
@@ -225,6 +226,16 @@ class SearchViewModel(
                 _state.update {
                     it.copy(isLoading = false, isLoadingMore = false)
                 }
+            } catch (e: RateLimitException) {
+                logger.debug("Rate limit exceeded: ${e.message}")
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        isLoadingMore = false,
+                        errorMessage = e.message
+                    )
+                }
+
             } catch (e: CancellationException) {
                 logger.debug("Search cancelled (expected): ${e.message}")
             } catch (e: Exception) {

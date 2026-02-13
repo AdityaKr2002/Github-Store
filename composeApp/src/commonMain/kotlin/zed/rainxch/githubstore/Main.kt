@@ -12,7 +12,7 @@ import zed.rainxch.core.presentation.theme.GithubStoreTheme
 import zed.rainxch.core.presentation.utils.ApplyAndroidSystemBars
 import zed.rainxch.githubstore.app.navigation.AppNavigation
 import zed.rainxch.githubstore.app.navigation.GithubStoreGraph
-import zed.rainxch.githubstore.app.state.components.RateLimitDialog
+import zed.rainxch.githubstore.app.components.RateLimitDialog
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable

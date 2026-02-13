@@ -184,6 +184,11 @@ fun AppNavigation(
                                 )
                             )
                         },
+                        onNavigateToAuthentication = {
+                            navController.navigate(
+                                GithubStoreGraph.AuthenticationScreen
+                            )
+                        },
                         onNavigateToDeveloperProfile = { username ->
                             navController.navigate(
                                 GithubStoreGraph.DeveloperProfileScreen(
