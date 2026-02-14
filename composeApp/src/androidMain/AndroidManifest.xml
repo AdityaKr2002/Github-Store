@@ -72,8 +72,8 @@
                     android:scheme="https" />
             </intent-filter>
 
-            <!-- App website links: https://github-store.org/app/{owner}/{repo} -->
-            <intent-filter android:autoVerify="true">
+            <!-- App website links: https://github-store.org/app/?repo={owner}/{repo} -->
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />

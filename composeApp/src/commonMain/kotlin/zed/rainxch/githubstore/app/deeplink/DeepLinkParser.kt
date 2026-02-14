@@ -19,10 +19,10 @@ object DeepLinkParser {
      * Parses a URI string into a [DeepLinkDestination].
      *
      * Supported formats:
+     * - `githubstore://repo/{owner}/{repo}`
      * - `https://github.com/{owner}/{repo}`
      * - `https://github.com/{owner}/{repo}/...` (any sub-path, extra segments ignored)
-     * - `https://github-store.org/app/{owner}/{repo}`
-     * - `githubstore://repo/{owner}/{repo}`
+     * - `https://github-store.org/app/?repo={owner}/{repo}`
      */
     fun parse(uri: String): DeepLinkDestination {
         val trimmed = uri.trim()
@@ -43,13 +43,12 @@ object DeepLinkParser {
             }
         }
 
-        // Handle https://github-store.org/app/{owner}/{repo}
-        val storePattern = Regex("^https?://github-store\\.org/app/([^/]+)/([^/?#]+)")
-        storePattern.find(trimmed)?.let { match ->
-            val owner = match.groupValues[1]
-            val repo = match.groupValues[2]
-            if (owner.isNotEmpty() && repo.isNotEmpty()) {
-                return DeepLinkDestination.Repository(owner, repo)
+        // Handle https://github-store.org/app/?repo={owner}/{repo}
+        val storeQueryPattern = Regex("^https?://github-store\\.org/app/?(\\?|#)")
+        if (storeQueryPattern.containsMatchIn(trimmed)) {
+            val repoParam = extractQueryParam(trimmed, "repo")
+            if (repoParam != null) {
+                return parseOwnerRepo(repoParam)
             }
         }
 
@@ -67,5 +66,15 @@ object DeepLinkParser {
     private fun isValidOwnerRepo(owner: String, repo: String): Boolean {
         return owner.isNotEmpty() && repo.isNotEmpty()
                 && owner.lowercase() !in githubExcludedPaths
+    }
+
+    private fun extractQueryParam(uri: String, key: String): String? {
+        val queryStart = uri.indexOf('?')
+        if (queryStart == -1) return null
+        val query = uri.substring(queryStart + 1).split('#').first()
+        return query.split('&')
+            .map { it.split('=', limit = 2) }
+            .firstOrNull { it.size == 2 && it[0] == key }
+            ?.get(1)
     }
 }
