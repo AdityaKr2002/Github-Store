@@ -322,4 +322,15 @@
     <!-- Developer Profile - Count Formatting -->
     <string name="count_millions">%1$dM</string>
     <string name="count_thousands">%1$dk</string>
+
+    <string name="released_just_now">अभी-अभी जारी किया गया</string>
+    <string name="released_hours_ago">%1$d घंटे पहले जारी किया गया</string>
+    <string name="released_yesterday">कल जारी किया गया</string>
+    <string name="released_days_ago">%1$d दिन पहले जारी किया गया</string>
+    <string name="released_on_date">%1$s को जारी किया गया</string>
+
+    <string name="bottom_nav_home_title">होम</string>
+    <string name="bottom_nav_search_title">खोज</string>
+    <string name="bottom_nav_apps_title">ऐप्स</string>
+    <string name="bottom_nav_profile_title">प्रोफ़ाइल</string>
 </resources>

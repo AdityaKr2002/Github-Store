@@ -118,7 +118,7 @@ fun AppNavigation(
                             )
                         },
                         viewModel = koinViewModel {
-                            parametersOf(args.repositoryId)
+                            parametersOf(args.repositoryId, args.owner, args.repo)
                         }
                     )
                 }

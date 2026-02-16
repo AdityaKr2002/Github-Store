@@ -25,13 +25,13 @@ import zed.rainxch.githubstore.core.presentation.res.*
 
 @Composable
 fun RateLimitDialog(
-    rateLimitInfo: RateLimitInfo?,
+    rateLimitInfo: RateLimitInfo,
     isAuthenticated: Boolean,
     onDismiss: () -> Unit,
     onSignIn: () -> Unit
 ) {
     val timeUntilReset = remember(rateLimitInfo) {
-        rateLimitInfo?.timeUntilReset()?.inWholeMinutes?.toInt()
+        rateLimitInfo.timeUntilReset().inWholeMinutes.toInt()
     }
 
     AlertDialog(
@@ -59,12 +59,12 @@ fun RateLimitDialog(
                     text = if (isAuthenticated) {
                         stringResource(
                             Res.string.rate_limit_used_all,
-                            rateLimitInfo?.limit ?: 0
+                            rateLimitInfo.limit
                         )
                     } else {
                         stringResource(
                             Res.string.rate_limit_used_all_free,
-                            rateLimitInfo?.limit ?: 0
+                            60
                         )
                     },
                     style = MaterialTheme.typography.bodyMedium,
@@ -74,7 +74,7 @@ fun RateLimitDialog(
                 Text(
                     text = stringResource(
                         Res.string.rate_limit_resets_in_minutes,
-                        timeUntilReset ?: 0
+                        timeUntilReset
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
@@ -83,6 +83,7 @@ fun RateLimitDialog(
 
                 if (!isAuthenticated) {
                     Spacer(modifier = Modifier.height(8.dp))
+
                     Text(
                         text = stringResource(Res.string.rate_limit_tip_sign_in),
                         style = MaterialTheme.typography.bodySmall,
@@ -127,7 +128,11 @@ fun RateLimitDialog(
 fun RateLimitDialogPreview() {
     GithubStoreTheme {
         RateLimitDialog(
-            rateLimitInfo = null,
+            rateLimitInfo = RateLimitInfo(
+                limit = 1000,
+                remaining = 2000,
+                resetTimestamp = 0L,
+            ),
             isAuthenticated = false,
             onDismiss = {
 

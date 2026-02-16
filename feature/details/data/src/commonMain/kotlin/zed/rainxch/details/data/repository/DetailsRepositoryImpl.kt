@@ -34,33 +34,43 @@ class DetailsRepositoryImpl(
 
     private val readmeHelper = ReadmeLocalizationHelper(localizationManager)
 
+    private fun RepoByIdNetwork.toGithubRepoSummary(): GithubRepoSummary {
+        return GithubRepoSummary(
+            id = id,
+            name = name,
+            fullName = fullName,
+            owner = GithubUser(
+                id = owner.id,
+                login = owner.login,
+                avatarUrl = owner.avatarUrl,
+                htmlUrl = owner.htmlUrl
+            ),
+            description = description,
+            htmlUrl = htmlUrl,
+            stargazersCount = stars,
+            forksCount = forks,
+            language = language,
+            topics = topics,
+            releasesUrl = "https://api.github.com/repos/${owner.login}/${name}/releases{/id}",
+            updatedAt = updatedAt,
+            defaultBranch = defaultBranch
+        )
+    }
+
     override suspend fun getRepositoryById(id: Long): GithubRepoSummary {
-        val repo = httpClient.executeRequest<RepoByIdNetwork> {
+        return httpClient.executeRequest<RepoByIdNetwork> {
             get("/repositories/$id") {
                 header(HttpHeaders.Accept, "application/vnd.github+json")
             }
-        }.getOrThrow()
+        }.getOrThrow().toGithubRepoSummary()
+    }
 
-        return GithubRepoSummary(
-            id = repo.id,
-            name = repo.name,
-            fullName = repo.fullName,
-            owner = GithubUser(
-                id = repo.owner.id,
-                login = repo.owner.login,
-                avatarUrl = repo.owner.avatarUrl,
-                htmlUrl = repo.owner.htmlUrl
-            ),
-            description = repo.description,
-            htmlUrl = repo.htmlUrl,
-            stargazersCount = repo.stars,
-            forksCount = repo.forks,
-            language = repo.language,
-            topics = repo.topics,
-            releasesUrl = "https://api.github.com/repos/${repo.owner.login}/${repo.name}/releases{/id}",
-            updatedAt = repo.updatedAt,
-            defaultBranch = repo.defaultBranch
-        )
+    override suspend fun getRepositoryByOwnerAndName(owner: String, name: String): GithubRepoSummary {
+        return httpClient.executeRequest<RepoByIdNetwork> {
+            get("/repos/$owner/$name") {
+                header(HttpHeaders.Accept, "application/vnd.github+json")
+            }
+        }.getOrThrow().toGithubRepoSummary()
     }
 
     override suspend fun getLatestPublishedRelease(

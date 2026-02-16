@@ -44,6 +44,8 @@ import kotlin.time.ExperimentalTime
 
 class DetailsViewModel(
     private val repositoryId: Long,
+    private val ownerParam: String,
+    private val repoParam: String,
     private val detailsRepository: DetailsRepository,
     private val downloader: Downloader,
     private val installer: Installer,
@@ -93,7 +95,11 @@ class DetailsViewModel(
                     logger.warn("Sync had issues but continuing: ${syncResult.exceptionOrNull()?.message}")
                 }
 
-                val repo = detailsRepository.getRepositoryById(repositoryId)
+                val repo = if (ownerParam.isNotEmpty() && repoParam.isNotEmpty()) {
+                    detailsRepository.getRepositoryByOwnerAndName(ownerParam, repoParam)
+                } else {
+                    detailsRepository.getRepositoryById(repositoryId)
+                }
                 val isFavoriteDeferred = async {
                     try {
                         favouritesRepository.isFavoriteSync(repo.id)

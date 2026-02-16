@@ -12,6 +12,8 @@ typealias LanguageCode = String
 interface DetailsRepository {
     suspend fun getRepositoryById(id: Long): GithubRepoSummary
 
+    suspend fun getRepositoryByOwnerAndName(owner: String, name: String): GithubRepoSummary
+
     suspend fun getLatestPublishedRelease(
         owner: String,
         repo: String,

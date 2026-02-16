@@ -27,13 +27,15 @@
         <!-- Expose cache files via FileProvider for APK install -->
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- Auth callback (existing) -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -43,6 +45,44 @@
                 <data
                     android:host="callback"
                     android:scheme="githubstore" />
+            </intent-filter>
+
+            <!-- Custom scheme: githubstore://repo/{owner}/{repo} -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="repo"
+                    android:scheme="githubstore" />
+            </intent-filter>
+
+            <!-- GitHub repository links: https://github.com/{owner}/{repo} -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="github.com"
+                    android:pathPattern="/.*/..*"
+                    android:scheme="https" />
+            </intent-filter>
+
+            <!-- App website links: https://github-store.org/app/?repo={owner}/{repo} -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="github-store.org"
+                    android:pathPrefix="/app/"
+                    android:scheme="https" />
             </intent-filter>
         </activity>
 
