@@ -7,5 +7,6 @@ import kotlinx.serialization.Serializable
 data class GithubReleaseNetworkModel(
     @SerialName("draft") val draft: Boolean? = null,
     @SerialName("prerelease") val prerelease: Boolean? = null,
-    @SerialName("assets") val assets: List<AssetNetworkModel>
+    @SerialName("assets") val assets: List<AssetNetworkModel>,
+    @SerialName("published_at") val publishedAt: String? = null
 )

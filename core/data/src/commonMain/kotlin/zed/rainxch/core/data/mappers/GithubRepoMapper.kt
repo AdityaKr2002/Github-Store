@@ -22,6 +22,7 @@ fun GithubRepoNetworkModel.toSummary(): GithubRepoSummary = GithubRepoSummary(
     topics = topics,
     releasesUrl = releasesUrl,
     updatedAt = updatedAt,
-    defaultBranch = defaultBranch
+    defaultBranch = defaultBranch,
+    isFork = fork
 )
 

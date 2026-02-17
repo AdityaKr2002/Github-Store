@@ -1,14 +1,14 @@
 package zed.rainxch.home.data.data_source.impl
 
 import io.ktor.client.HttpClient
-import io.ktor.client.plugins.HttpRequestRetry
-import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -17,11 +17,17 @@ import zed.rainxch.core.domain.model.Platform
 import zed.rainxch.home.data.data_source.CachedRepositoriesDataSource
 import zed.rainxch.home.data.dto.CachedRepoResponse
 import zed.rainxch.home.domain.model.HomeCategory
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
+@OptIn(ExperimentalTime::class)
 class CachedRepositoriesDataSourceImpl(
     private val platform: Platform,
     private val logger: GitHubStoreLogger
 ) : CachedRepositoriesDataSource {
+
     private val json = Json {
         ignoreUnknownKeys = true
         isLenient = true
@@ -29,19 +35,20 @@ class CachedRepositoriesDataSourceImpl(
 
     private val httpClient = HttpClient {
         install(HttpTimeout) {
-            requestTimeoutMillis = 15_000
-            connectTimeoutMillis = 10_000
-            socketTimeoutMillis = 15_000
+            requestTimeoutMillis = 10_000
+            connectTimeoutMillis = 5_000
+            socketTimeoutMillis = 10_000
         }
-
-        install(HttpRequestRetry) {
-            maxRetries = 2
-            retryOnServerErrors(maxRetries = 2)
-            exponentialDelay()
-        }
-
         expectSuccess = false
     }
+
+    private val cacheMutex = Mutex()
+    private val memoryCache = mutableMapOf<HomeCategory, CacheEntry>()
+
+    private data class CacheEntry(
+        val data: CachedRepoResponse,
+        val fetchedAt: Instant
+    )
 
     override suspend fun getCachedTrendingRepos(): CachedRepoResponse? {
         return fetchCachedReposForCategory(HomeCategory.TRENDING)
@@ -58,78 +65,72 @@ class CachedRepositoriesDataSourceImpl(
     private suspend fun fetchCachedReposForCategory(
         category: HomeCategory
     ): CachedRepoResponse? {
-        return withContext(Dispatchers.IO) {
-            try {
-                val platformName = when (platform) {
-                    Platform.ANDROID -> "android"
-                    Platform.WINDOWS -> "windows"
-                    Platform.MACOS -> "macos"
-                    Platform.LINUX -> "linux"
-                }
-
-                val base = when (category) {
-                    HomeCategory.TRENDING -> TRENDING_FULL_URL
-                    HomeCategory.HOT_RELEASE -> HOT_RELEASE_FULL_URL
-                    HomeCategory.MOST_POPULAR -> MOST_POPULAR_FULL_URL
-                }
-
-                val url = "$base/$platformName.json"
-
-                logger.debug("🔍 Fetching cached repos from: $url")
-
-                val response: HttpResponse = httpClient.get(url)
-
-                logger.debug("📥 Response status: ${response.status.value} ${response.status.description}")
-
-                when {
-                    response.status.isSuccess() -> {
-                        val responseText = response.bodyAsText()
-                        logger.debug("📄 Response body length: ${responseText.length} characters")
-
-                        val cachedData = json.decodeFromString<CachedRepoResponse>(responseText)
-
-                        logger.debug("✓ Successfully loaded ${cachedData.repositories.size} cached repos")
-                        logger.debug("✓ Last updated: ${cachedData.lastUpdated}")
-
-                        cachedData
-                    }
-
-                    response.status.value == 404 -> {
-                        logger.warn("⚠️ Cached data not found (404) - may not be generated yet")
-                        logger.warn("⚠️ URL attempted: $url")
-                        null
-                    }
-
-                    else -> {
-                        val errorBody = response.bodyAsText()
-                        logger.error("❌ Failed to fetch cached repos: HTTP ${response.status.value}")
-                        logger.error("❌ Response body: ${errorBody.take(500)}")
-                        null
-                    }
-                }
-            } catch (e: HttpRequestTimeoutException) {
-                logger.error("⏱️ Timeout fetching cached repos: ${e.message}")
-                e.printStackTrace()
-                null
-            } catch (e: SerializationException) {
-                logger.error("🔧 JSON parsing error: ${e.message}")
-                e.printStackTrace()
-                null
-            } catch (e: Exception) {
-                logger.error("💥 Error fetching cached repos: ${e.message}")
-                logger.error("💥 Exception type: ${e::class.simpleName}")
-                e.printStackTrace()
-                null
+        // Check in-memory cache first
+        val cached = cacheMutex.withLock { memoryCache[category] }
+        if (cached != null) {
+            val age = Clock.System.now() - cached.fetchedAt
+            if (age < CACHE_TTL) {
+                logger.debug("Memory cache hit for $category (age: ${age.inWholeSeconds}s)")
+                return cached.data
+            } else {
+                logger.debug("Memory cache expired for $category (age: ${age.inWholeSeconds}s)")
             }
+        }
+
+        return withContext(Dispatchers.IO) {
+            val platformName = when (platform) {
+                Platform.ANDROID -> "android"
+                Platform.WINDOWS -> "windows"
+                Platform.MACOS -> "macos"
+                Platform.LINUX -> "linux"
+            }
+
+            val path = when (category) {
+                HomeCategory.TRENDING -> "cached-data/trending/$platformName.json"
+                HomeCategory.HOT_RELEASE -> "cached-data/new-releases/$platformName.json"
+                HomeCategory.MOST_POPULAR -> "cached-data/most-popular/$platformName.json"
+            }
+
+            val mirrorUrls = listOf(
+                "https://raw.githubusercontent.com/OpenHub-Store/api/main/$path",
+                "https://cdn.jsdelivr.net/gh/OpenHub-Store/api@main/$path",
+                "https://cdn.statically.io/gh/OpenHub-Store/api/main/$path"
+            )
+
+            for (url in mirrorUrls) {
+                try {
+                    logger.debug("Fetching from: $url")
+                    val response: HttpResponse = httpClient.get(url)
+
+                    if (response.status.isSuccess()) {
+                        val responseText = response.bodyAsText()
+                        val parsed = json.decodeFromString<CachedRepoResponse>(responseText)
+
+                        // Store in memory cache
+                        cacheMutex.withLock {
+                            memoryCache[category] = CacheEntry(
+                                data = parsed,
+                                fetchedAt = Clock.System.now()
+                            )
+                        }
+
+                        return@withContext parsed
+                    } else {
+                        logger.error("HTTP ${response.status.value} from $url")
+                    }
+                } catch (e: SerializationException) {
+                    logger.error("Parse error from $url: ${e.message}")
+                } catch (e: Exception) {
+                    logger.error("Error with $url: ${e.message}")
+                }
+            }
+
+            logger.error("All mirrors failed for $category")
+            null
         }
     }
 
     private companion object {
-        private const val BASE_REPO_URL = "https://raw.githubusercontent.com/OpenHub-Store/api/refs/heads"
-        private const val TRENDING_FULL_URL = "$BASE_REPO_URL/main/cached-data/trending"
-        private const val HOT_RELEASE_FULL_URL = "$BASE_REPO_URL/main/cached-data/new-releases"
-        private const val MOST_POPULAR_FULL_URL = "$BASE_REPO_URL/main/cached-data/most-popular"
-
-
+        private val CACHE_TTL = 5.minutes
     }
 }
