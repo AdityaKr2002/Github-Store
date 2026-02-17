@@ -6,6 +6,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -41,9 +43,12 @@ import zed.rainxch.core.domain.model.GithubRelease
 import zed.rainxch.core.domain.model.GithubRepoSummary
 import zed.rainxch.core.domain.model.GithubUserProfile
 import zed.rainxch.core.domain.model.InstalledApp
+import zed.rainxch.core.presentation.components.ForkBadge
+import zed.rainxch.core.presentation.components.PlatformChip
+import zed.rainxch.core.presentation.utils.formatReleasedAt
 import zed.rainxch.details.presentation.model.DownloadStage
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun AppHeader(
     author: GithubUserProfile?,
@@ -144,6 +149,10 @@ fun AppHeader(
                         color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.weight(1f, fill = false)
                     )
+
+                    if (repository.isFork) {
+                        ForkBadge()
+                    }
                 }
 
                 Text(
@@ -182,6 +191,30 @@ fun AppHeader(
                         )
                     }
                 }
+
+                release?.publishedAt?.let { publishedAt ->
+                    Spacer(Modifier.height(4.dp))
+
+                    Text(
+                        text = formatReleasedAt(publishedAt),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.outline,
+                    )
+                }
+            }
+        }
+
+        val platforms = derivePlatformsFromAssets(release)
+        if (platforms.isNotEmpty()) {
+            Spacer(Modifier.height(12.dp))
+
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                platforms.forEach { platform ->
+                    PlatformChip(platform = platform)
+                }
             }
         }
 
@@ -193,6 +226,17 @@ fun AppHeader(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
+}
+
+private fun derivePlatformsFromAssets(release: GithubRelease?): List<String> {
+    if (release == null) return emptyList()
+    val names = release.assets.map { it.name.lowercase() }
+    val platforms = mutableListOf<String>()
+    if (names.any { it.endsWith(".apk") }) platforms.add("Android")
+    if (names.any { it.endsWith(".exe") || it.endsWith(".msi") }) platforms.add("Windows")
+    if (names.any { it.endsWith(".dmg") || it.endsWith(".pkg") }) platforms.add("macOS")
+    if (names.any { it.endsWith(".appimage") || it.endsWith(".deb") || it.endsWith(".rpm") }) platforms.add("Linux")
+    return platforms
 }
 
 @Composable

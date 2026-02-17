@@ -9,12 +9,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
@@ -29,6 +27,7 @@ import zed.rainxch.core.domain.model.PaginatedDiscoveryRepositories
 import zed.rainxch.core.domain.model.RateLimitException
 import zed.rainxch.domain.model.ProgrammingLanguage
 import zed.rainxch.domain.model.SearchPlatform
+import zed.rainxch.domain.model.SortBy
 import zed.rainxch.domain.repository.SearchRepository
 import zed.rainxch.search.data.dto.GithubReleaseNetworkModel
 import zed.rainxch.search.data.utils.LruCache
@@ -39,143 +38,140 @@ class SearchRepositoryImpl(
     private val releaseCheckCache = LruCache<String, GithubRepoSummary>(maxSize = 500)
     private val cacheMutex = Mutex()
 
+    companion object {
+        private const val PER_PAGE = 100
+        private const val VERIFY_CONCURRENCY = 15
+        private const val PER_CHECK_TIMEOUT_MS = 2000L
+        private const val MAX_AUTO_SKIP_PAGES = 3
+    }
+
     override fun searchRepositories(
         query: String,
         searchPlatform: SearchPlatform,
         language: ProgrammingLanguage,
+        sortBy: SortBy,
         page: Int
     ): Flow<PaginatedDiscoveryRepositories> = channelFlow {
-        val perPage = 30
         val searchQuery = buildSearchQuery(query, searchPlatform, language)
+        val (sort, order) = sortBy.toGithubParams()
 
         try {
-            val response = httpClient.executeRequest<GithubRepoSearchResponse> {
-                get("/search/repositories") {
-                    parameter("q", searchQuery)
-                    parameter("per_page", perPage)
-                    parameter("page", page)
-                }
-            }.getOrThrow()
+            var currentPage = page
+            var pagesSkipped = 0
 
-            val total = response.totalCount
-            val baseHasMore = (page * perPage) < total && response.items.isNotEmpty()
+            while (pagesSkipped <= MAX_AUTO_SKIP_PAGES) {
+                currentCoroutineContext().ensureActive()
 
-            if (page == 1) {
-                val tunedTargetCount = 24
-                val tunedMinFirstEmit = 4
-                val tunedVerifyConcurrency = 12
-                val tunedPerCheckTimeoutMs = 1400L
-                val tunedMaxBackfillPages = 3
-                val tunedEarlyFallbackTimeoutMs = 0L
-                val tunedCandidatesPerPage = 50
-                val rawFallbackFirstItems = emptyList<GithubRepoSummary>()
-
-                val strict = runStrictFirstRender(
-                    firstPageItems = response.items,
-                    searchQuery = searchQuery,
-                    perPage = perPage,
-                    startPage = page,
-                    searchPlatform = searchPlatform,
-                    targetCount = tunedTargetCount,
-                    minFirstEmit = tunedMinFirstEmit,
-                    verifyConcurrency = tunedVerifyConcurrency,
-                    perCheckTimeoutMs = tunedPerCheckTimeoutMs,
-                    maxBackfillPages = tunedMaxBackfillPages,
-                    earlyFallbackTimeoutMs = tunedEarlyFallbackTimeoutMs,
-                    rawFallbackItems = rawFallbackFirstItems,
-                    candidatesPerPage = tunedCandidatesPerPage
-                ) { growingVerified ->
-                    if (growingVerified.isNotEmpty()) {
-                        send(
-                            PaginatedDiscoveryRepositories(
-                                repos = growingVerified,
-                                hasMore = true,
-                                nextPageIndex = page + 1,
-                                totalCount = total
-                            )
-                        )
-                    }
-                }
-
-                send(
-                    PaginatedDiscoveryRepositories(
-                        repos = strict.verified,
-                        hasMore = strict.hasMore,
-                        nextPageIndex = strict.nextPageIndex,
-                        totalCount = total
-                    )
-                )
-            } else {
-                if (response.items.isNotEmpty()) {
-                    val semaphore = Semaphore(10)
-                    val timeoutMs = 2000L
-
-                    val deferredChecks = coroutineScope {
-                        response.items.map { repo ->
-                            async {
-                                try {
-                                    semaphore.withPermit {
-                                        withTimeoutOrNull(timeoutMs) {
-                                            checkRepoHasInstallersCached(repo, searchPlatform)
-                                        }
-                                    }
-                                } catch (_: CancellationException) {
-                                    null
-                                }
-                            }
+                val response = httpClient.executeRequest<GithubRepoSearchResponse> {
+                    get("/search/repositories") {
+                        parameter("q", searchQuery)
+                        parameter("per_page", PER_PAGE)
+                        parameter("page", currentPage)
+                        if (sort != null) {
+                            parameter("sort", sort)
+                            parameter("order", order)
                         }
                     }
+                }.getOrThrow()
 
-                    val filtered = buildList {
-                        for (i in response.items.indices) {
-                            currentCoroutineContext().ensureActive()
-                            val result = try {
-                                deferredChecks[i].await()
-                            } catch (e: CancellationException) {
-                                throw e
-                            } catch (_: Exception) {
-                                null
-                            }
-                            if (result != null) add(result)
-                        }
-                    }
+                val total = response.totalCount
+                val baseHasMore = (currentPage * PER_PAGE) < total && response.items.isNotEmpty()
 
-                    if (filtered.isNotEmpty() || !baseHasMore) {
-                        send(
-                            PaginatedDiscoveryRepositories(
-                                repos = filtered,
-                                hasMore = baseHasMore,
-                                nextPageIndex = page + 1,
-                                totalCount = total
-                            )
-                        )
-                    } else {
-                        send(
-                            PaginatedDiscoveryRepositories(
-                                repos = emptyList(),
-                                hasMore = true,
-                                nextPageIndex = page + 1,
-                                totalCount = total
-                            )
-                        )
-                    }
-                } else {
+                if (response.items.isEmpty()) {
                     send(
                         PaginatedDiscoveryRepositories(
                             repos = emptyList(),
                             hasMore = false,
-                            nextPageIndex = page + 1,
+                            nextPageIndex = currentPage + 1,
                             totalCount = total
                         )
                     )
+                    return@channelFlow
                 }
+
+                val verified = verifyBatch(response.items, searchPlatform)
+
+                if (verified.isNotEmpty()) {
+                    send(
+                        PaginatedDiscoveryRepositories(
+                            repos = verified,
+                            hasMore = baseHasMore,
+                            nextPageIndex = currentPage + 1,
+                            totalCount = total
+                        )
+                    )
+                    return@channelFlow
+                }
+
+                // Entire page yielded 0 verified repos — auto-skip to next page
+                if (!baseHasMore) {
+                    send(
+                        PaginatedDiscoveryRepositories(
+                            repos = emptyList(),
+                            hasMore = false,
+                            nextPageIndex = currentPage + 1,
+                            totalCount = total
+                        )
+                    )
+                    return@channelFlow
+                }
+
+                currentPage++
+                pagesSkipped++
             }
+
+            // Exhausted auto-skip budget, tell UI there's more so it can try again
+            send(
+                PaginatedDiscoveryRepositories(
+                    repos = emptyList(),
+                    hasMore = true,
+                    nextPageIndex = currentPage + 1,
+                    totalCount = null
+                )
+            )
         } catch (e: RateLimitException) {
             throw e
         } catch (e: CancellationException) {
             throw e
         }
     }.flowOn(Dispatchers.IO)
+
+    private suspend fun verifyBatch(
+        items: List<GithubRepoNetworkModel>,
+        searchPlatform: SearchPlatform
+    ): List<GithubRepoSummary> {
+        val semaphore = Semaphore(VERIFY_CONCURRENCY)
+
+        val deferredChecks = coroutineScope {
+            items.map { repo ->
+                async {
+                    try {
+                        semaphore.withPermit {
+                            withTimeoutOrNull(PER_CHECK_TIMEOUT_MS) {
+                                checkRepoHasInstallersCached(repo, searchPlatform)
+                            }
+                        }
+                    } catch (_: CancellationException) {
+                        null
+                    }
+                }
+            }
+        }
+
+        return buildList {
+            for (i in items.indices) {
+                currentCoroutineContext().ensureActive()
+                val result = try {
+                    deferredChecks[i].await()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    null
+                }
+                if (result != null) add(result)
+            }
+        }
+    }
 
     private fun buildSearchQuery(
         userQuery: String,
@@ -186,17 +182,18 @@ class SearchRepositoryImpl(
         val q = if (clean.isBlank()) {
             "stars:>100"
         } else {
-            if (clean.any { it.isWhitespace() }) "\"$clean\"" else clean
+            // Always quote the query to match it as a phrase for better relevance
+            "\"$clean\""
         }
-        val scope = " in:name,description,readme"
-        val common = " archived:false fork:false"
+        val scope = " in:name,description"
+        val common = " archived:false fork:true"
 
         val platformHints = when (searchPlatform) {
             SearchPlatform.All -> ""
-            SearchPlatform.Android -> " (topic:android OR apk in:name,description,readme)"
-            SearchPlatform.Windows -> " (topic:windows OR exe in:name,description,readme OR msi in:name,description,readme)"
-            SearchPlatform.Macos -> " (topic:macos OR dmg in:name,description,readme OR pkg in:name,description,readme)"
-            SearchPlatform.Linux -> " (topic:linux OR appimage in:name,description,readme OR deb in:name,description,readme)"
+            SearchPlatform.Android -> " topic:android"
+            SearchPlatform.Windows -> " topic:windows"
+            SearchPlatform.Macos -> " topic:macos"
+            SearchPlatform.Linux -> " topic:linux"
         }
 
         val languageFilter = if (language != ProgrammingLanguage.All && language.queryValue != null) {
@@ -208,152 +205,45 @@ class SearchRepositoryImpl(
         return ("$q$scope$common" + platformHints + languageFilter).trim()
     }
 
-    private data class StrictResult(
-        val verified: List<GithubRepoSummary>,
-        val hasMore: Boolean,
-        val nextPageIndex: Int
-    )
-
-    private suspend fun runStrictFirstRender(
-        firstPageItems: List<GithubRepoNetworkModel>,
-        searchQuery: String,
-        perPage: Int,
-        startPage: Int,
-        searchPlatform: SearchPlatform,
-        targetCount: Int,
-        minFirstEmit: Int,
-        verifyConcurrency: Int,
-        perCheckTimeoutMs: Long,
-        maxBackfillPages: Int,
-        earlyFallbackTimeoutMs: Long,
-        rawFallbackItems: List<GithubRepoSummary>,
-        candidatesPerPage: Int,
-        onEarlyEmit: suspend (growingVerified: List<GithubRepoSummary>) -> Unit
-    ): StrictResult {
-        return coroutineScope {
-            var lastFetchedPage = startPage
-            val verified = mutableListOf<GithubRepoSummary>()
-            var emittedOnce = false
-
-            val fallbackJob = if (rawFallbackItems.isNotEmpty() && earlyFallbackTimeoutMs > 0) {
-                launch {
-                    delay(earlyFallbackTimeoutMs)
-                    if (!emittedOnce) {
-                        emittedOnce = true
-                        onEarlyEmit(rawFallbackItems)
-                    }
-                }
-            } else null
-
-            suspend fun verifyBatch(items: List<GithubRepoNetworkModel>) {
-                val semaphore = Semaphore(verifyConcurrency)
-
-                val deferred = coroutineScope {
-                    items.map { repo ->
-                        async {
-                            try {
-                                semaphore.withPermit {
-                                    withTimeoutOrNull(perCheckTimeoutMs) {
-                                        checkRepoHasInstallersCached(repo, searchPlatform)
-                                    }
-                                }
-                            } catch (_: CancellationException) {
-                                null
-                            }
-                        }
-                    }
-                }
-
-                for (i in items.indices) {
-                    currentCoroutineContext().ensureActive()
-                    val res = try {
-                        deferred[i].await()
-                    } catch (e: CancellationException) {
-                        throw e
-                    } catch (_: Exception) {
-                        null
-                    }
-                    if (res != null) {
-                        verified.add(res)
-                        if (!emittedOnce && (verified.size >= minFirstEmit)) {
-                            emittedOnce = true
-                            fallbackJob?.cancel()
-                            onEarlyEmit(verified.toList())
-                        }
-                        if (verified.size >= targetCount) return
-                    }
-                }
-            }
-
-            verifyBatch(firstPageItems.take(candidatesPerPage))
-
-            var hasMore = true
-            var nextPageIndex = startPage + 1
-            var pagesFetched = 0
-            while (verified.size < targetCount && hasMore && pagesFetched < maxBackfillPages) {
-                val nextPage = lastFetchedPage + 1
-
-                val resp = httpClient.executeRequest<GithubRepoSearchResponse> {
-                    get("/search/repositories") {
-                        parameter("q", searchQuery)
-                        parameter("per_page", perPage)
-                        parameter("page", nextPage)
-                    }
-                }.getOrThrow()
-
-                if (resp.items.isEmpty()) {
-                    hasMore = false
-                    nextPageIndex = nextPage
-                    break
-                }
-
-                verifyBatch(resp.items.take(candidatesPerPage))
-
-                lastFetchedPage = nextPage
-                pagesFetched++
-
-                hasMore = (lastFetchedPage * perPage) < resp.totalCount && resp.items.isNotEmpty()
-                nextPageIndex = lastFetchedPage + 1
-            }
-
-            if (!emittedOnce) {
-                fallbackJob?.cancel()
-                if (verified.isNotEmpty()) {
-                    onEarlyEmit(verified.toList())
-                }
-            }
-
-            StrictResult(
-                verified = verified.toList(),
-                hasMore = hasMore,
-                nextPageIndex = nextPageIndex
-            )
+    private fun assetMatchesPlatform(nameRaw: String, platform: SearchPlatform): Boolean {
+        val name = nameRaw.lowercase()
+        return when (platform) {
+            SearchPlatform.All -> name.endsWith(".apk") ||
+                    name.endsWith(".msi") || name.endsWith(".exe") ||
+                    name.endsWith(".dmg") || name.endsWith(".pkg") ||
+                    name.endsWith(".appimage") || name.endsWith(".deb") || name.endsWith(".rpm")
+            SearchPlatform.Android -> name.endsWith(".apk")
+            SearchPlatform.Windows -> name.endsWith(".exe") || name.endsWith(".msi")
+            SearchPlatform.Macos -> name.endsWith(".dmg") || name.endsWith(".pkg")
+            SearchPlatform.Linux -> name.endsWith(".appimage") || name.endsWith(".deb") || name.endsWith(".rpm")
         }
+    }
+
+    private fun detectAvailablePlatforms(assetNames: List<String>): List<String> {
+        val platforms = mutableListOf<String>()
+        val allPlatforms = listOf(
+            SearchPlatform.Android to "Android",
+            SearchPlatform.Windows to "Windows",
+            SearchPlatform.Macos to "macOS",
+            SearchPlatform.Linux to "Linux"
+        )
+        for ((platform, label) in allPlatforms) {
+            if (assetNames.any { assetMatchesPlatform(it, platform) }) {
+                platforms.add(label)
+            }
+        }
+        return platforms
     }
 
     private suspend fun checkRepoHasInstallers(
         repo: GithubRepoNetworkModel,
         targetPlatform: SearchPlatform
     ): GithubRepoSummary? {
-        fun assetMatchesForPlatform(nameRaw: String, platform: SearchPlatform): Boolean {
-            val name = nameRaw.lowercase()
-            return when (platform) {
-                SearchPlatform.All -> name.endsWith(".apk") ||
-                        name.endsWith(".msi") || name.endsWith(".exe") ||
-                        name.endsWith(".dmg") || name.endsWith(".pkg") ||
-                        name.endsWith(".appimage") || name.endsWith(".deb") || name.endsWith(".rpm")
-                SearchPlatform.Android -> name.endsWith(".apk")
-                SearchPlatform.Windows -> name.endsWith(".exe") || name.endsWith(".msi")
-                SearchPlatform.Macos -> name.endsWith(".dmg") || name.endsWith(".pkg")
-                SearchPlatform.Linux -> name.endsWith(".appimage") || name.endsWith(".deb") || name.endsWith(".rpm")
-            }
-        }
-
         return try {
             val allReleases = httpClient.executeRequest<List<GithubReleaseNetworkModel>> {
                 get("/repos/${repo.owner.login}/${repo.name}/releases") {
                     header("Accept", "application/vnd.github.v3+json")
-                    parameter("per_page", 10)
+                    parameter("per_page", 5)
                 }
             }.getOrNull() ?: return null
 
@@ -366,10 +256,18 @@ class SearchRepositoryImpl(
             }
 
             val hasRelevantAssets = stableRelease.assets.any { asset ->
-                assetMatchesForPlatform(asset.name, targetPlatform)
+                assetMatchesPlatform(asset.name, targetPlatform)
             }
 
-            if (hasRelevantAssets) repo.toSummary() else null
+            if (hasRelevantAssets) {
+                val assetNames = stableRelease.assets.map { it.name }
+                val platforms = detectAvailablePlatforms(assetNames)
+                val summary = repo.toSummary()
+                summary.copy(
+                    updatedAt = stableRelease.publishedAt ?: summary.updatedAt,
+                    availablePlatforms = platforms
+                )
+            } else null
         } catch (_: Exception) {
             null
         }

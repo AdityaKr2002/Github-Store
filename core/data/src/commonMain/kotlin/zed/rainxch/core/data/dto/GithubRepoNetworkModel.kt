@@ -17,5 +17,6 @@ data class GithubRepoNetworkModel(
     @SerialName("language") val language: String? = null,
     @SerialName("topics") val topics: List<String>? = null,
     @SerialName("releases_url") val releasesUrl: String,
-    @SerialName("updated_at") val updatedAt: String
+    @SerialName("updated_at") val updatedAt: String,
+    @SerialName("fork") val fork: Boolean = false
 )

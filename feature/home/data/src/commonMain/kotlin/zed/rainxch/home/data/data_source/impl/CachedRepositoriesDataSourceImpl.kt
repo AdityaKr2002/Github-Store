@@ -59,70 +59,44 @@ class CachedRepositoriesDataSourceImpl(
         category: HomeCategory
     ): CachedRepoResponse? {
         return withContext(Dispatchers.IO) {
-            try {
-                val platformName = when (platform) {
-                    Platform.ANDROID -> "android"
-                    Platform.WINDOWS -> "windows"
-                    Platform.MACOS -> "macos"
-                    Platform.LINUX -> "linux"
-                }
-
-                val base = when (category) {
-                    HomeCategory.TRENDING -> TRENDING_FULL_URL
-                    HomeCategory.HOT_RELEASE -> HOT_RELEASE_FULL_URL
-                    HomeCategory.MOST_POPULAR -> MOST_POPULAR_FULL_URL
-                }
-
-                val url = "$base/$platformName.json"
-
-                logger.debug("🔍 Fetching cached repos from: $url")
-
-                val response: HttpResponse = httpClient.get(url)
-
-                logger.debug("📥 Response status: ${response.status.value} ${response.status.description}")
-
-                when {
-                    response.status.isSuccess() -> {
-                        val responseText = response.bodyAsText()
-                        logger.debug("📄 Response body length: ${responseText.length} characters")
-
-                        val cachedData = json.decodeFromString<CachedRepoResponse>(responseText)
-
-                        logger.debug("✓ Successfully loaded ${cachedData.repositories.size} cached repos")
-                        logger.debug("✓ Last updated: ${cachedData.lastUpdated}")
-
-                        cachedData
-                    }
-
-                    response.status.value == 404 -> {
-                        logger.warn("⚠️ Cached data not found (404) - may not be generated yet")
-                        logger.warn("⚠️ URL attempted: $url")
-                        null
-                    }
-
-                    else -> {
-                        val errorBody = response.bodyAsText()
-                        logger.error("❌ Failed to fetch cached repos: HTTP ${response.status.value}")
-                        logger.error("❌ Response body: ${errorBody.take(500)}")
-                        null
-                    }
-                }
-            } catch (e: HttpRequestTimeoutException) {
-                logger.error("⏱️ Timeout fetching cached repos: ${e.message}")
-                e.printStackTrace()
-                null
-            } catch (e: SerializationException) {
-                logger.error("🔧 JSON parsing error: ${e.message}")
-                e.printStackTrace()
-                null
-            } catch (e: Exception) {
-                logger.error("💥 Error fetching cached repos: ${e.message}")
-                logger.error("💥 Exception type: ${e::class.simpleName}")
-                e.printStackTrace()
-                null
+            val platformName = when (platform) {
+                Platform.ANDROID -> "android"
+                Platform.WINDOWS -> "windows"
+                Platform.MACOS -> "macos"
+                Platform.LINUX -> "linux"
             }
+
+            val path = when (category) {
+                HomeCategory.TRENDING -> "cached-data/trending/$platformName.json"
+                HomeCategory.HOT_RELEASE -> "cached-data/new-releases/$platformName.json"
+                HomeCategory.MOST_POPULAR -> "cached-data/most-popular/$platformName.json"
+            }
+
+            val mirrorUrls = listOf(
+                "https://raw.githubusercontent.com/OpenHub-Store/api/main/$path",
+                "https://cdn.jsdelivr.net/gh/OpenHub-Store/api@main/$path",
+                "https://cdn.statically.io/gh/OpenHub-Store/api/main/$path"
+            )
+
+            for (url in mirrorUrls) {
+                try {
+                    logger.debug("Fetching from: $url")
+                    val response: HttpResponse = httpClient.get(url)
+
+                    if (response.status.isSuccess()) {
+                        val responseText = response.bodyAsText()
+                        return@withContext json.decodeFromString(responseText)
+                    }
+                } catch (e: Exception) {
+                    logger.error("Error with $url: ${e.message}")
+                }
+            }
+
+            logger.error("🚫 All mirrors failed for $category")
+            null
         }
     }
+
 
     private companion object {
         private const val BASE_REPO_URL = "https://raw.githubusercontent.com/OpenHub-Store/api/refs/heads"

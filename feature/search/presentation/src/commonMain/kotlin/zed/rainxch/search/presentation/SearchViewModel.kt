@@ -37,6 +37,11 @@ class SearchViewModel(
     private var currentPage = 1
     private var searchDebounceJob: Job? = null
 
+    companion object {
+        private const val MIN_QUERY_LENGTH = 3
+        private const val DEBOUNCE_MS = 800L
+    }
+
     private val _state = MutableStateFlow(SearchState())
     val state = _state
         .onStart {
@@ -123,14 +128,18 @@ class SearchViewModel(
     }
 
     private fun performSearch(isInitial: Boolean = false) {
-        if (_state.value.query.isBlank()) {
-            _state.update {
-                it.copy(
-                    isLoading = false,
-                    isLoadingMore = false,
-                    repositories = emptyList(),
-                    errorMessage = null
-                )
+        val query = _state.value.query.trim()
+        if (query.isBlank() || query.length < MIN_QUERY_LENGTH) {
+            if (query.isBlank()) {
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        isLoadingMore = false,
+                        repositories = emptyList(),
+                        errorMessage = null,
+                        totalCount = null
+                    )
+                }
             }
             return
         }
@@ -146,7 +155,8 @@ class SearchViewModel(
                     isLoading = isInitial,
                     isLoadingMore = !isInitial,
                     errorMessage = null,
-                    repositories = if (isInitial) emptyList() else it.repositories
+                    repositories = if (isInitial) emptyList() else it.repositories,
+                    totalCount = if (isInitial) null else it.totalCount
                 )
             }
 
@@ -169,6 +179,7 @@ class SearchViewModel(
                         query = _state.value.query,
                         searchPlatform = _state.value.selectedSearchPlatform,
                         language = _state.value.selectedLanguage,
+                        sortBy = _state.value.selectedSortBy,
                         page = currentPage
                     )
                     .collect { paginatedRepos ->
@@ -215,7 +226,7 @@ class SearchViewModel(
                             currentState.copy(
                                 repositories = allRepos,
                                 hasMorePages = paginatedRepos.hasMore,
-                                totalCount = allRepos.size,
+                                totalCount = paginatedRepos.totalCount ?: currentState.totalCount,
                                 errorMessage = if (allRepos.isEmpty() && !paginatedRepos.hasMore) {
                                     getString(Res.string.no_repositories_found)
                                 } else null
@@ -287,13 +298,24 @@ class SearchViewModel(
                             repositories = emptyList(),
                             isLoading = false,
                             isLoadingMore = false,
+                            errorMessage = null,
+                            totalCount = null
+                        )
+                    }
+                } else if (action.query.trim().length < MIN_QUERY_LENGTH) {
+                    // Don't search yet — query too short, clear previous results
+                    currentSearchJob?.cancel()
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            isLoadingMore = false,
                             errorMessage = null
                         )
                     }
                 } else {
                     searchDebounceJob = viewModelScope.launch {
                         try {
-                            delay(500)
+                            delay(DEBOUNCE_MS)
                             currentPage = 1
                             performSearch(isInitial = true)
                         } catch (_: CancellationException) {
@@ -327,7 +349,7 @@ class SearchViewModel(
             }
 
             SearchAction.LoadMore -> {
-                if (!_state.value.isLoadingMore && _state.value.hasMorePages) {
+                if (!_state.value.isLoadingMore && !_state.value.isLoading && _state.value.hasMorePages) {
                     performSearch(isInitial = false)
                 }
             }
