@@ -267,17 +267,19 @@ class AppsViewModel(
                 val apkInfo = installer.getApkInfoExtractor().extractPackageInfo(filePath)
                     ?: throw IllegalStateException("Failed to extract APK info")
 
-                updateAppInDatabase(
-                    app = app,
-                    newVersion = latestVersion,
-                    assetName = latestAssetName,
-                    assetUrl = latestAssetUrl,
-                    newVersionName = apkInfo.versionName,
-                    newVersionCode = apkInfo.versionCode
-                )
+                markPendingUpdate(app)
 
                 updateAppState(app.packageName, UpdateState.Installing)
                 installer.install(filePath, ext)
+
+                installedAppsRepository.updateAppVersion(
+                    packageName = app.packageName,
+                    newTag = latestVersion,
+                    newAssetName = latestAssetName,
+                    newAssetUrl = latestAssetUrl,
+                    newVersionName = apkInfo.versionName,
+                    newVersionCode = apkInfo.versionCode
+                )
 
                 updateAppState(app.packageName, UpdateState.Success)
                 delay(2000)
@@ -468,29 +470,14 @@ class AppsViewModel(
         }
     }
 
-    private suspend fun updateAppInDatabase(
+    private suspend fun markPendingUpdate(
         app: InstalledApp,
-        newVersion: String,
-        assetName: String,
-        assetUrl: String,
-        newVersionName: String,
-        newVersionCode: Long
     ) {
         try {
-            installedAppsRepository.updateAppVersion(
-                packageName = app.packageName,
-                newTag = newVersion,
-                newAssetName = assetName,
-                newAssetUrl = assetUrl,
-                newVersionName = newVersionName,
-                newVersionCode = newVersionCode
-            )
-
             installedAppsRepository.updatePendingStatus(app.packageName, true)
-
-            logger.debug("Updated database for ${app.packageName} to tag $newVersion, versionName $newVersionName")
+            logger.debug("Marked ${app.packageName} as pending install")
         } catch (e: Exception) {
-            logger.error("Failed to update database: ${e.message}")
+            logger.error("Failed to mark pending update: ${e.message}")
         }
     }
 

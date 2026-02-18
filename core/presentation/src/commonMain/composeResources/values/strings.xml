@@ -169,6 +169,7 @@
     <string name="updating">Updating</string>
     <string name="verifying">Verifying</string>
     <string name="installing">Installing</string>
+    <string name="pending_install">Pending install</string>
 
     <!-- Install helpers -->
     <string name="open_in_obtainium">Open in Obtainium</string>
@@ -342,6 +343,7 @@
     <string name="category_all">All</string>
     <string name="select_version">Select version</string>
     <string name="pre_release_badge">Pre-release</string>
+    <string name="latest_badge">Latest</string>
     <string name="no_version_selected">No version</string>
     <string name="versions_title">Versions</string>
 </resources>

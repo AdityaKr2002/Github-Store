@@ -379,18 +379,28 @@ fun AppItemCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    if (app.isUpdateAvailable) {
-                        Text(
-                            text = "${app.installedVersion} → ${app.latestVersion}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    } else {
-                        Text(
-                            text = app.installedVersion,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    when {
+                        app.isPendingInstall -> {
+                            Text(
+                                text = stringResource(Res.string.pending_install),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.tertiary
+                            )
+                        }
+                        app.isUpdateAvailable -> {
+                            Text(
+                                text = "${app.installedVersion} → ${app.latestVersion}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        else -> {
+                            Text(
+                                text = app.installedVersion,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
@@ -506,7 +516,8 @@ fun AppItemCard(
                 Button(
                     onClick = onOpenClick,
                     modifier = Modifier.weight(1f),
-                    enabled = appItem.updateState !is UpdateState.Downloading &&
+                    enabled = !app.isPendingInstall &&
+                            appItem.updateState !is UpdateState.Downloading &&
                             appItem.updateState !is UpdateState.Installing
                 ) {
                     Icon(

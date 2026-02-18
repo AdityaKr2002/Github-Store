@@ -36,10 +36,19 @@ class SyncInstalledAppsUseCase(
 
             val toDelete = mutableListOf<String>()
             val toMigrate = mutableListOf<Pair<String, MigrationResult>>()
+            val toResolvePending = mutableListOf<InstalledApp>()
 
             appsInDb.forEach { app ->
+                val isOnSystem = installedPackageNames.contains(app.packageName)
                 when {
-                    !installedPackageNames.contains(app.packageName) -> {
+                    app.isPendingInstall -> {
+                        if (isOnSystem) {
+                            toResolvePending.add(app)
+                        }
+                        // Not on system yet but pending — keep in DB, don't delete
+                    }
+
+                    !isOnSystem -> {
                         toDelete.add(app.packageName)
                     }
 
@@ -57,6 +66,30 @@ class SyncInstalledAppsUseCase(
                         logger.info("Removed uninstalled app: $packageName")
                     } catch (e: Exception) {
                         logger.error("Failed to delete $packageName: ${e.message}")
+                    }
+                }
+
+                toResolvePending.forEach { app ->
+                    try {
+                        val systemInfo = packageMonitor.getInstalledPackageInfo(app.packageName)
+                        if (systemInfo != null) {
+                            installedAppsRepository.updateApp(
+                                app.copy(
+                                    isPendingInstall = false,
+                                    isUpdateAvailable = false,
+                                    installedVersionName = systemInfo.versionName,
+                                    installedVersionCode = systemInfo.versionCode,
+                                    latestVersionName = systemInfo.versionName,
+                                    latestVersionCode = systemInfo.versionCode
+                                )
+                            )
+                            logger.info("Resolved pending install: ${app.packageName} (v${systemInfo.versionName}, code=${systemInfo.versionCode})")
+                        } else {
+                            installedAppsRepository.updatePendingStatus(app.packageName, false)
+                            logger.info("Resolved pending install (no system info): ${app.packageName}")
+                        }
+                    } catch (e: Exception) {
+                        logger.error("Failed to resolve pending ${app.packageName}: ${e.message}")
                     }
                 }
 
@@ -84,7 +117,7 @@ class SyncInstalledAppsUseCase(
             }
 
             logger.info(
-                "Sync completed: ${toDelete.size} deleted, ${toMigrate.size} migrated"
+                "Sync completed: ${toDelete.size} deleted, ${toResolvePending.size} pending resolved, ${toMigrate.size} migrated"
             )
 
             Result.success(Unit)

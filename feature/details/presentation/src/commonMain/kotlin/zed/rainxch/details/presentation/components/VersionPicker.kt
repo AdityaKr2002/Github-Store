@@ -145,6 +145,8 @@ fun VersionPicker(
                         modifier = Modifier.padding(16.dp)
                     )
                 } else {
+                    val latestReleaseId = filteredReleases.firstOrNull()?.id
+
                     LazyColumn(
                         modifier = Modifier.fillMaxWidth(),
                         contentPadding = PaddingValues(vertical = 8.dp)
@@ -156,6 +158,7 @@ fun VersionPicker(
                             VersionListItem(
                                 release = release,
                                 isSelected = release.id == selectedRelease?.id,
+                                isLatest = release.id == latestReleaseId,
                                 onClick = { onAction(DetailsAction.SelectRelease(release)) }
                             )
                         }
@@ -170,6 +173,7 @@ fun VersionPicker(
 private fun VersionListItem(
     release: GithubRelease,
     isSelected: Boolean,
+    isLatest: Boolean,
     onClick: () -> Unit
 ) {
     Row(
@@ -195,6 +199,19 @@ private fun VersionListItem(
                         MaterialTheme.colorScheme.onSurface
                     }
                 )
+                if (isLatest) {
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    ) {
+                        Text(
+                            text = stringResource(Res.string.latest_badge),
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
                 if (release.isPrerelease) {
                     Surface(
                         shape = RoundedCornerShape(4.dp),

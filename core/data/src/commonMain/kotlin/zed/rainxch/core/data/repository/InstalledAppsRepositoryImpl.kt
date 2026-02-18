@@ -170,28 +170,34 @@ class InstalledAppsRepositoryImpl(
 
                 if (primaryAsset != null) {
                     val tempAssetName = primaryAsset.name + ".tmp"
-                    downloader.download(primaryAsset.downloadUrl, tempAssetName).collect { }
+                    try {
+                        downloader.download(primaryAsset.downloadUrl, tempAssetName).collect { }
 
-                    val tempPath = downloader.getDownloadedFilePath(tempAssetName)
-                    if (tempPath != null) {
-                        val latestInfo =
-                            installer.getApkInfoExtractor().extractPackageInfo(tempPath)
-                        File(tempPath).delete()
+                        val tempPath = downloader.getDownloadedFilePath(tempAssetName)
+                        if (tempPath != null) {
+                            val latestInfo =
+                                installer.getApkInfoExtractor().extractPackageInfo(tempPath)
+                            File(tempPath).delete()
 
-                        if (latestInfo != null) {
-                            latestVersionName = latestInfo.versionName
-                            latestVersionCode = latestInfo.versionCode
-                            isUpdateAvailable = latestVersionCode > app.installedVersionCode
+                            if (latestInfo != null) {
+                                latestVersionName = latestInfo.versionName
+                                latestVersionCode = latestInfo.versionCode
+                                isUpdateAvailable = latestVersionCode > app.installedVersionCode
+                            } else {
+                                // Couldn't extract APK info, fall back to tag comparison
+                                latestVersionName = latestRelease.tagName
+                            }
                         } else {
-                            isUpdateAvailable = false
+                            // Download failed, fall back to tag comparison
                             latestVersionName = latestRelease.tagName
                         }
-                    } else {
-                        isUpdateAvailable = false
+                    } catch (e: Exception) {
+                        Logger.w { "Failed to download APK for version check of ${app.packageName}: ${e.message}" }
+                        // Download/extraction failed, fall back to tag comparison
                         latestVersionName = latestRelease.tagName
                     }
                 } else {
-                    isUpdateAvailable = false
+                    // No installable asset found, but tags differ so likely an update
                     latestVersionName = latestRelease.tagName
                 }
 
