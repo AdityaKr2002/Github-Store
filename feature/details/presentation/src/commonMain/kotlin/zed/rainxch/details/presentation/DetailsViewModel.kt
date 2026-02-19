@@ -9,6 +9,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -271,6 +272,8 @@ class DetailsViewModel(
                     isAppManagerEnabled = isAppManagerEnabled,
                     installedApp = installedApp,
                 )
+
+                observeInstalledApp(repo.id)
             } catch (e: RateLimitException) {
                 logger.error("Rate limited: ${e.message}")
                 _state.value = _state.value.copy(
@@ -287,6 +290,16 @@ class DetailsViewModel(
         }
     }
 
+    private fun observeInstalledApp(repoId: Long) {
+        viewModelScope.launch {
+            installedAppsRepository.getAppByRepoIdAsFlow(repoId)
+                .distinctUntilChanged()
+                .collect { app ->
+                    _state.update { it.copy(installedApp = app) }
+                }
+        }
+    }
+
     @OptIn(ExperimentalTime::class)
     fun onAction(action: DetailsAction) {
         when (action) {
@@ -298,7 +311,39 @@ class DetailsViewModel(
             DetailsAction.InstallPrimary -> {
                 val primary = _state.value.primaryAsset
                 val release = _state.value.selectedRelease
+                val installedApp = _state.value.installedApp
+
                 if (primary != null && release != null) {
+                    if (installedApp != null &&
+                        !installedApp.isPendingInstall &&
+                        !installedApp.isUpdateAvailable &&
+                        normalizeVersion(release.tagName) != normalizeVersion(installedApp.installedVersion) &&
+                        platform == Platform.ANDROID
+                    ) {
+                        val isConfirmedDowngrade = if (
+                            normalizeVersion(release.tagName) == normalizeVersion(installedApp.latestVersion) &&
+                            (installedApp.latestVersionCode ?: 0L) > 0
+                        ) {
+                            installedApp.installedVersionCode > (installedApp.latestVersionCode
+                                ?: 0L)
+                        } else {
+                            true
+                        }
+
+                        if (isConfirmedDowngrade) {
+                            viewModelScope.launch {
+                                _events.send(
+                                    DetailsEvent.ShowDowngradeWarning(
+                                        packageName = installedApp.packageName,
+                                        currentVersion = installedApp.installedVersion,
+                                        targetVersion = release.tagName
+                                    )
+                                )
+                            }
+                            return
+                        }
+                    }
+
                     installAsset(
                         downloadUrl = primary.downloadUrl,
                         assetName = primary.name,
@@ -428,6 +473,41 @@ class DetailsViewModel(
                             sizeBytes = latestAsset.size,
                             releaseTag = selectedRelease.tagName,
                             isUpdate = true
+                        )
+                    }
+                }
+            }
+
+            DetailsAction.UninstallApp -> {
+                val installedApp = _state.value.installedApp ?: return
+                logger.debug("Uninstalling app: ${installedApp.packageName}")
+                viewModelScope.launch {
+                    try {
+                        installer.uninstall(installedApp.packageName)
+                    } catch (e: Exception) {
+                        logger.error("Failed to request uninstall for ${installedApp.packageName}: ${e.message}")
+                        _events.send(
+                            DetailsEvent.OnMessage(
+                                getString(Res.string.failed_to_uninstall, installedApp.packageName)
+                            )
+                        )
+                    }
+                }
+
+            }
+
+            DetailsAction.OpenApp -> {
+                val installedApp = _state.value.installedApp ?: return
+                val launched = installer.openApp(installedApp.packageName)
+                if (!launched) {
+                    viewModelScope.launch {
+                        _events.send(
+                            DetailsEvent.OnMessage(
+                                getString(
+                                    Res.string.failed_to_open_app,
+                                    installedApp.appName
+                                )
+                            )
                         )
                     }
                 }
@@ -908,6 +988,10 @@ class DetailsViewModel(
                 downloader.cancelDownload(assetName)
             }
         }
+    }
+
+    private fun normalizeVersion(version: String?): String {
+        return version?.removePrefix("v")?.removePrefix("V")?.trim() ?: ""
     }
 
     private companion object {

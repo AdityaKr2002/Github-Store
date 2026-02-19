@@ -188,10 +188,30 @@ class AppsViewModel(
                 refresh()
             }
 
+            is AppsAction.OnUninstallApp -> {
+                uninstallApp(action.app)
+            }
+
             is AppsAction.OnNavigateToRepo -> {
                 viewModelScope.launch {
                     _events.send(AppsEvent.NavigateToRepo(action.repoId))
                 }
+            }
+        }
+    }
+
+    private fun uninstallApp(app: InstalledApp) {
+        viewModelScope.launch {
+            try {
+                installer.uninstall(app.packageName)
+                logger.debug("Requested uninstall for ${app.packageName}")
+            } catch (e: Exception) {
+                logger.error("Failed to request uninstall for ${app.packageName}: ${e.message}")
+                _events.send(
+                    AppsEvent.ShowError(
+                        getString(Res.string.failed_to_uninstall, app.appName)
+                    )
+                )
             }
         }
     }
@@ -207,7 +227,7 @@ class AppsViewModel(
                                 AppsEvent.ShowError(
                                     getString(
                                         Res.string.cannot_launch,
-                                        arrayOf(app.appName)
+                                        app.appName
                                     )
                                 )
                             )
@@ -220,7 +240,7 @@ class AppsViewModel(
                     AppsEvent.ShowError(
                         getString(
                             Res.string.failed_to_open,
-                            arrayOf(app.appName)
+                            app.appName
                         )
                     )
                 )
@@ -284,7 +304,8 @@ class AppsViewModel(
                             installer.getApkInfoExtractor().extractPackageInfo(existingPath)
                         val normalizedExisting =
                             apkInfo?.versionName?.removePrefix("v")?.removePrefix("V") ?: ""
-                        val normalizedLatest = latestVersion.removePrefix("v").removePrefix("V")
+                        val normalizedLatest =
+                            latestVersion.removePrefix("v").removePrefix("V")
                         if (normalizedExisting != normalizedLatest) {
                             val deleted = file.delete()
                             logger.debug("Deleted mismatched existing file ($normalizedExisting != $normalizedLatest): $deleted")
@@ -371,7 +392,7 @@ class AppsViewModel(
                     AppsEvent.ShowError(
                         getString(
                             Res.string.failed_to_update,
-                            arrayOf(app.appName, e.message ?: "")
+                            app.appName, e.message ?: ""
                         )
                     )
                 )

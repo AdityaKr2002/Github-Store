@@ -24,6 +24,7 @@ class AndroidInstaller(
     override fun getApkInfoExtractor(): InstallerInfoExtractor {
         return installerInfoExtractor
     }
+
     override fun detectSystemArchitecture(): SystemArchitecture {
         val arch = Build.SUPPORTED_ABIS.firstOrNull() ?: return SystemArchitecture.UNKNOWN
         return when {
@@ -42,7 +43,10 @@ class AndroidInstaller(
         return isArchitectureCompatible(name, systemArch)
     }
 
-    private fun isArchitectureCompatible(assetName: String, systemArch: SystemArchitecture): Boolean {
+    private fun isArchitectureCompatible(
+        assetName: String,
+        systemArch: SystemArchitecture
+    ): Boolean {
         return AssetArchitectureMatcher.isCompatible(assetName, systemArch)
     }
 
@@ -57,17 +61,37 @@ class AndroidInstaller(
             val name = asset.name.lowercase()
             val archBoost = when (systemArch) {
                 SystemArchitecture.X86_64 -> {
-                    if (AssetArchitectureMatcher.isExactMatch(name, SystemArchitecture.X86_64)) 10000 else 0
+                    if (AssetArchitectureMatcher.isExactMatch(
+                            name,
+                            SystemArchitecture.X86_64
+                        )
+                    ) 10000 else 0
                 }
+
                 SystemArchitecture.AARCH64 -> {
-                    if (AssetArchitectureMatcher.isExactMatch(name, SystemArchitecture.AARCH64)) 10000 else 0
+                    if (AssetArchitectureMatcher.isExactMatch(
+                            name,
+                            SystemArchitecture.AARCH64
+                        )
+                    ) 10000 else 0
                 }
+
                 SystemArchitecture.X86 -> {
-                    if (AssetArchitectureMatcher.isExactMatch(name, SystemArchitecture.X86)) 10000 else 0
+                    if (AssetArchitectureMatcher.isExactMatch(
+                            name,
+                            SystemArchitecture.X86
+                        )
+                    ) 10000 else 0
                 }
+
                 SystemArchitecture.ARM -> {
-                    if (AssetArchitectureMatcher.isExactMatch(name, SystemArchitecture.ARM)) 10000 else 0
+                    if (AssetArchitectureMatcher.isExactMatch(
+                            name,
+                            SystemArchitecture.ARM
+                        )
+                    ) 10000 else 0
                 }
+
                 SystemArchitecture.UNKNOWN -> 0
             }
             archBoost + asset.size
@@ -80,16 +104,14 @@ class AndroidInstaller(
     }
 
     override suspend fun ensurePermissionsOrThrow(extOrMime: String) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val pm = context.packageManager
-            if (!pm.canRequestPackageInstalls()) {
-                val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-                    data = "package:${context.packageName}".toUri()
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                context.startActivity(intent)
-                throw IllegalStateException("Please enable 'Install unknown apps' for this app in Settings and try again.")
+        val pm = context.packageManager
+        if (!pm.canRequestPackageInstalls()) {
+            val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                data = "package:${context.packageName}".toUri()
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
+            context.startActivity(intent)
+            throw IllegalStateException("Please enable 'Install unknown apps' for this app in Settings and try again.")
         }
     }
 
@@ -154,6 +176,38 @@ class AndroidInstaller(
             context.packageManager.getPackageInfo("io.github.muntashirakon.AppManager", 0)
             true
         } catch (e: Exception) {
+            false
+        }
+    }
+
+    override fun uninstall(packageName: String) {
+        Logger.d { "Requesting uninstall for: $packageName" }
+        val intent = Intent(Intent.ACTION_DELETE).apply {
+            data = "package:$packageName".toUri()
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        try {
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            Logger.w { "Failed to start uninstall for $packageName: ${e.message}" }
+        }
+
+    }
+
+    override fun openApp(packageName: String): Boolean {
+        val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName)
+        return if (launchIntent != null) {
+            try {
+                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(launchIntent)
+                true
+            } catch (e: ActivityNotFoundException) {
+                Logger.w { "Failed to launch $packageName: ${e.message}" }
+                false
+            }
+
+        } else {
+            Logger.w { "No launch intent found for $packageName" }
             false
         }
     }

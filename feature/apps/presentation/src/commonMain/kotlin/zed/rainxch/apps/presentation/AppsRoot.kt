@@ -2,6 +2,7 @@
 
 package zed.rainxch.apps.presentation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Update
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -300,6 +302,7 @@ fun AppsScreen(
                                     onOpenClick = { onAction(AppsAction.OnOpenApp(appItem.installedApp)) },
                                     onUpdateClick = { onAction(AppsAction.OnUpdateApp(appItem.installedApp)) },
                                     onCancelClick = { onAction(AppsAction.OnCancelUpdate(appItem.installedApp.packageName)) },
+                                    onUninstallClick = { onAction(AppsAction.OnUninstallApp(appItem.installedApp)) },
                                     onRepoClick = { onAction(AppsAction.OnNavigateToRepo(appItem.installedApp.repoId)) },
                                     modifier = Modifier.liquefiable(liquidState)
                                 )
@@ -373,20 +376,22 @@ fun AppItemCard(
     onOpenClick: () -> Unit,
     onUpdateClick: () -> Unit,
     onCancelClick: () -> Unit,
+    onUninstallClick: () -> Unit,
     onRepoClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val app = appItem.installedApp
 
     Card(
-        modifier = modifier.fillMaxWidth(),
-        onClick = onRepoClick
+        modifier = modifier.fillMaxWidth()
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onRepoClick() },
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 CoilImage(
@@ -548,8 +553,26 @@ fun AppItemCard(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                // Uninstall icon button (shown when not pending and not actively updating)
+                if (!app.isPendingInstall &&
+                    appItem.updateState !is UpdateState.Downloading &&
+                    appItem.updateState !is UpdateState.Installing &&
+                    appItem.updateState !is UpdateState.CheckingUpdate
+                ) {
+                    IconButton(
+                        onClick = onUninstallClick
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.DeleteOutline,
+                            contentDescription = stringResource(Res.string.uninstall),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+
                 Button(
                     onClick = onOpenClick,
                     modifier = Modifier.weight(1f),
