@@ -158,6 +158,27 @@ class AndroidInstaller(
         }
     }
 
+    override fun uninstall(packageName: String) {
+        Logger.d { "Requesting uninstall for: $packageName" }
+        val intent = Intent(Intent.ACTION_DELETE).apply {
+            data = "package:$packageName".toUri()
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(intent)
+    }
+
+    override fun openApp(packageName: String): Boolean {
+        val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName)
+        return if (launchIntent != null) {
+            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(launchIntent)
+            true
+        } else {
+            Logger.w { "No launch intent found for $packageName" }
+            false
+        }
+    }
+
     override fun openInAppManager(
         filePath: String,
         onOpenInstaller: () -> Unit

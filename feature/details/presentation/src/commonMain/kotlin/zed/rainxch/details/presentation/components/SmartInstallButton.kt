@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.CardDefaults
@@ -62,12 +64,111 @@ fun SmartInstallButton(
     val isInstalled = installedApp != null && !installedApp.isPendingInstall
     val isUpdateAvailable = installedApp?.isUpdateAvailable == true && !installedApp.isPendingInstall
 
+    val isSameVersionInstalled = isInstalled &&
+            installedApp != null &&
+            normalizeVersion(installedApp.installedVersion) == normalizeVersion(
+        state.selectedRelease?.tagName ?: ""
+    )
+
     val enabled = remember(primaryAsset, isDownloading, isInstalling) {
         primaryAsset != null && !isDownloading && !isInstalling
     }
 
     val isActiveDownload = state.isDownloading || state.downloadStage != DownloadStage.IDLE
 
+    // When same version is installed, show Open + Uninstall (Play Store style)
+    if (isSameVersionInstalled && !isActiveDownload) {
+        Row(
+            modifier = modifier,
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            // Uninstall button
+            ElevatedCard(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(52.dp)
+                    .clickable { onAction(DetailsAction.UninstallApp) }
+                    .liquefiable(liquidState),
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer
+                ),
+                shape = RoundedCornerShape(
+                    topStart = 24.dp,
+                    bottomStart = 24.dp,
+                    topEnd = 6.dp,
+                    bottomEnd = 6.dp
+                )
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        Text(
+                            text = stringResource(Res.string.uninstall),
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                }
+            }
+
+            // Open button
+            ElevatedCard(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(52.dp)
+                    .clickable { onAction(DetailsAction.OpenApp) }
+                    .liquefiable(liquidState),
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
+                shape = RoundedCornerShape(
+                    topStart = 6.dp,
+                    bottomStart = 6.dp,
+                    topEnd = 24.dp,
+                    bottomEnd = 24.dp
+                )
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                        Text(
+                            text = stringResource(Res.string.open_app),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                }
+            }
+        }
+        return
+    }
+
+    // Regular install/update button for all other cases
     val buttonColor = when {
         !enabled && !isActiveDownload -> MaterialTheme.colorScheme.surfaceContainer
         isUpdateAvailable -> MaterialTheme.colorScheme.tertiary
@@ -77,16 +178,18 @@ fun SmartInstallButton(
 
     val buttonText = when {
         !enabled && primaryAsset == null -> stringResource(Res.string.not_available)
-        installedApp != null && installedApp.installedVersion != state.selectedRelease?.tagName -> stringResource(
-            Res.string.update_app
-        )
-
         isUpdateAvailable -> stringResource(
             Res.string.update_to_version,
-            installedApp.latestVersion.toString()
+            installedApp?.latestVersion.toString()
         )
 
-        isInstalled -> stringResource(Res.string.reinstall)
+        isInstalled && installedApp != null &&
+                installedApp.installedVersion != state.selectedRelease?.tagName ->
+            stringResource(
+                Res.string.install_version,
+                state.selectedRelease?.tagName ?: ""
+            )
+
         else -> stringResource(Res.string.install_latest)
     }
 
@@ -340,6 +443,10 @@ fun SmartInstallButton(
             }
         }
     }
+}
+
+private fun normalizeVersion(version: String): String {
+    return version.removePrefix("v").removePrefix("V").trim()
 }
 
 @Preview
