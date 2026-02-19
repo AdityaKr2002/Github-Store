@@ -188,10 +188,26 @@ class AppsViewModel(
                 refresh()
             }
 
+            is AppsAction.OnUninstallApp -> {
+                uninstallApp(action.app)
+            }
+
             is AppsAction.OnNavigateToRepo -> {
                 viewModelScope.launch {
                     _events.send(AppsEvent.NavigateToRepo(action.repoId))
                 }
+            }
+        }
+    }
+
+    private fun uninstallApp(app: InstalledApp) {
+        try {
+            installer.uninstall(app.packageName)
+            logger.debug("Requested uninstall for ${app.packageName}")
+        } catch (e: Exception) {
+            logger.error("Failed to request uninstall for ${app.packageName}: ${e.message}")
+            viewModelScope.launch {
+                _events.send(AppsEvent.ShowError("Failed to uninstall ${app.appName}"))
             }
         }
     }
