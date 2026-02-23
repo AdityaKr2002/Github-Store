@@ -33,6 +33,8 @@ data class DetailsState(
 
     val isDownloading: Boolean = false,
     val downloadProgressPercent: Int? = null,
+    val downloadedBytes: Long = 0L,
+    val totalBytes: Long? = null,
     val isInstalling: Boolean = false,
     val downloadError: String? = null,
     val installError: String? = null,
