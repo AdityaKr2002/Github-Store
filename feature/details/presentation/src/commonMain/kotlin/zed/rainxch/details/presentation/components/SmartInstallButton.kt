@@ -251,8 +251,13 @@ fun SmartInstallButton(
                                     fontWeight = FontWeight.Bold
                                 )
 
+                                val progressText = if (state.totalBytes != null && state.totalBytes > 0) {
+                                    "${formatFileSize(state.downloadedBytes)} / ${formatFileSize(state.totalBytes)}"
+                                } else {
+                                    "${progress ?: 0}%"
+                                }
                                 Text(
-                                    text = "${progress ?: 0}%",
+                                    text = progressText,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                                 )
@@ -323,6 +328,9 @@ fun SmartInstallButton(
                         if (primaryAsset != null) {
                             val assetArch = extractArchitectureFromName(primaryAsset.name)
                             val systemArch = state.systemArchitecture
+                            val sizeText = formatFileSize(primaryAsset.size)
+                            val archLabel = assetArch ?: systemArch.name.lowercase()
+                            val subtitle = "$archLabel  \u2022  $sizeText"
 
                             Spacer(modifier = Modifier.height(2.dp))
 
@@ -331,7 +339,7 @@ fun SmartInstallButton(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = assetArch ?: systemArch.name.lowercase(),
+                                    text = subtitle,
                                     color = if (enabled) {
                                         when {
                                             isUpdateAvailable -> MaterialTheme.colorScheme.onTertiary.copy(
@@ -447,6 +455,15 @@ fun SmartInstallButton(
 
 private fun normalizeVersion(version: String): String {
     return version.removePrefix("v").removePrefix("V").trim()
+}
+
+private fun formatFileSize(bytes: Long): String {
+    return when {
+        bytes >= 1_073_741_824 -> "%.1f GB".format(bytes / 1_073_741_824.0)
+        bytes >= 1_048_576 -> "%.1f MB".format(bytes / 1_048_576.0)
+        bytes >= 1_024 -> "%.1f KB".format(bytes / 1_024.0)
+        else -> "$bytes B"
+    }
 }
 
 @Preview

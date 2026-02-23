@@ -66,6 +66,9 @@ class DetailsViewModel(
     private var hasLoadedInitialData = false
     private var currentDownloadJob: Job? = null
     private var currentAssetName: String? = null
+    // Tracks the most recently downloaded file so it can be reused if the user
+    // dismisses the install dialog and re-clicks install on the same screen session.
+    private var cachedDownloadAssetName: String? = null
 
     private val _state = MutableStateFlow(DetailsState())
     val state = _state
@@ -314,23 +317,19 @@ class DetailsViewModel(
                 val installedApp = _state.value.installedApp
 
                 if (primary != null && release != null) {
+                    // Downgrade detection: only warn when the user picks an OLDER version
                     if (installedApp != null &&
                         !installedApp.isPendingInstall &&
-                        !installedApp.isUpdateAvailable &&
                         normalizeVersion(release.tagName) != normalizeVersion(installedApp.installedVersion) &&
                         platform == Platform.ANDROID
                     ) {
-                        val isConfirmedDowngrade = if (
-                            normalizeVersion(release.tagName) == normalizeVersion(installedApp.latestVersion) &&
-                            (installedApp.latestVersionCode ?: 0L) > 0
-                        ) {
-                            installedApp.installedVersionCode > (installedApp.latestVersionCode
-                                ?: 0L)
-                        } else {
-                            true
-                        }
+                        val isDowngrade = isDowngradeVersion(
+                            candidate = release.tagName,
+                            current = installedApp.installedVersion,
+                            allReleases = _state.value.allReleases
+                        )
 
-                        if (isConfirmedDowngrade) {
+                        if (isDowngrade) {
                             viewModelScope.launch {
                                 _events.send(
                                     DetailsEvent.ShowDowngradeWarning(
@@ -369,21 +368,17 @@ class DetailsViewModel(
 
                 val assetName = currentAssetName
                 if (assetName != null) {
-                    viewModelScope.launch {
-                        try {
-                            val deleted = downloader.cancelDownload(assetName)
-                            logger.debug("Cancel download - file deleted: $deleted")
-
-                            appendLog(
-                                assetName = assetName,
-                                size = 0L,
-                                tag = _state.value.selectedRelease?.tagName ?: "",
-                                result = LogResult.Cancelled
-                            )
-                        } catch (t: Throwable) {
-                            logger.error("Failed to cancel download: ${t.message}")
-                        }
-                    }
+                    // Keep the partially/fully downloaded file so the user can resume
+                    // without re-downloading. It will be cleaned up in onCleared().
+                    cachedDownloadAssetName = assetName
+                    val releaseTag = _state.value.selectedRelease?.tagName ?: ""
+                    appendLog(
+                        assetName = assetName,
+                        size = _state.value.downloadedBytes,
+                        tag = releaseTag,
+                        result = LogResult.Cancelled
+                    )
+                    logger.debug("Download cancelled – keeping file for potential reuse: $assetName")
                 }
 
                 currentAssetName = null
@@ -723,16 +718,43 @@ class DetailsViewModel(
                     extOrMime = assetName.substringAfterLast('.', "").lowercase()
                 )
 
-                _state.value = _state.value.copy(downloadStage = DownloadStage.DOWNLOADING)
-                downloader.download(downloadUrl, assetName).collect { p ->
-                    _state.value = _state.value.copy(downloadProgressPercent = p.percent)
-                    if (p.percent == 100) {
-                        _state.value = _state.value.copy(downloadStage = DownloadStage.VERIFYING)
-                    }
-                }
+                // Check if file was already downloaded (e.g. user dismissed install dialog)
+                val existingPath = downloader.getDownloadedFilePath(assetName)
+                val filePath: String
 
-                val filePath = downloader.getDownloadedFilePath(assetName)
-                    ?: throw IllegalStateException("Downloaded file not found")
+                if (existingPath != null && java.io.File(existingPath).exists()) {
+                    logger.debug("Reusing already downloaded file: $assetName")
+                    filePath = existingPath
+                    _state.value = _state.value.copy(
+                        downloadProgressPercent = 100,
+                        downloadedBytes = sizeBytes,
+                        totalBytes = sizeBytes,
+                        downloadStage = DownloadStage.VERIFYING
+                    )
+                } else {
+                    _state.value = _state.value.copy(
+                        downloadStage = DownloadStage.DOWNLOADING,
+                        downloadedBytes = 0L,
+                        totalBytes = sizeBytes
+                    )
+                    downloader.download(downloadUrl, assetName).collect { p ->
+                        _state.value = _state.value.copy(
+                            downloadProgressPercent = p.percent,
+                            downloadedBytes = p.bytesDownloaded,
+                            totalBytes = p.totalBytes ?: sizeBytes
+                        )
+                        if (p.percent == 100) {
+                            _state.value =
+                                _state.value.copy(downloadStage = DownloadStage.VERIFYING)
+                        }
+                    }
+
+                    filePath = downloader.getDownloadedFilePath(assetName)
+                        ?: throw IllegalStateException("Downloaded file not found")
+
+                    // Cache asset name so it persists for reuse until screen is left
+                    cachedDownloadAssetName = assetName
+                }
 
                 appendLog(
                     assetName = assetName,
@@ -983,15 +1005,71 @@ class DetailsViewModel(
         super.onCleared()
         currentDownloadJob?.cancel()
 
-        currentAssetName?.let { assetName ->
+        // When the screen is actually left (ViewModel destroyed), clean up any
+        // in-progress or cached download file so we don't accumulate stale files.
+        val assetsToClean = listOfNotNull(currentAssetName, cachedDownloadAssetName).distinct()
+        if (assetsToClean.isNotEmpty()) {
             viewModelScope.launch {
-                downloader.cancelDownload(assetName)
+                for (asset in assetsToClean) {
+                    try {
+                        downloader.cancelDownload(asset)
+                        logger.debug("Cleaned up download on screen leave: $asset")
+                    } catch (t: Throwable) {
+                        logger.error("Failed to clean download on leave: ${t.message}")
+                    }
+                }
             }
         }
     }
 
     private fun normalizeVersion(version: String?): String {
         return version?.removePrefix("v")?.removePrefix("V")?.trim() ?: ""
+    }
+
+    /**
+     * Returns true if [candidate] is strictly older than [current].
+     * Uses list-index order as primary heuristic (releases are newest-first),
+     * and falls back to semantic version comparison when list lookup fails.
+     */
+    private fun isDowngradeVersion(
+        candidate: String,
+        current: String,
+        allReleases: List<GithubRelease>
+    ): Boolean {
+        val normalizedCandidate = normalizeVersion(candidate)
+        val normalizedCurrent = normalizeVersion(current)
+
+        if (normalizedCandidate == normalizedCurrent) return false
+
+        val candidateIndex = allReleases.indexOfFirst {
+            normalizeVersion(it.tagName) == normalizedCandidate
+        }
+        val currentIndex = allReleases.indexOfFirst {
+            normalizeVersion(it.tagName) == normalizedCurrent
+        }
+
+        // Both found in list → use list order (newer = lower index)
+        if (candidateIndex != -1 && currentIndex != -1) {
+            return candidateIndex > currentIndex
+        }
+
+        // Fallback: semantic version comparison
+        return compareSemanticVersions(normalizedCandidate, normalizedCurrent) < 0
+    }
+
+    /**
+     * Compares two semantic version strings. Returns positive if a > b, negative if a < b, 0 if equal.
+     */
+    private fun compareSemanticVersions(a: String, b: String): Int {
+        val aParts = a.split("[.\\-]".toRegex())
+        val bParts = b.split("[.\\-]".toRegex())
+        val maxLen = maxOf(aParts.size, bParts.size)
+        for (i in 0 until maxLen) {
+            val aPart = aParts.getOrNull(i)?.filter { it.isDigit() }?.toLongOrNull() ?: 0L
+            val bPart = bParts.getOrNull(i)?.filter { it.isDigit() }?.toLongOrNull() ?: 0L
+            if (aPart != bPart) return aPart.compareTo(bPart)
+        }
+        return 0
     }
 
     private companion object {
