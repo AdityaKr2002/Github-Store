@@ -66,8 +66,7 @@ class DetailsViewModel(
     private var hasLoadedInitialData = false
     private var currentDownloadJob: Job? = null
     private var currentAssetName: String? = null
-    // Tracks the most recently downloaded file so it can be reused if the user
-    // dismisses the install dialog and re-clicks install on the same screen session.
+
     private var cachedDownloadAssetName: String? = null
 
     private val _state = MutableStateFlow(DetailsState())
@@ -317,7 +316,6 @@ class DetailsViewModel(
                 val installedApp = _state.value.installedApp
 
                 if (primary != null && release != null) {
-                    // Downgrade detection: only warn when the user picks an OLDER version
                     if (installedApp != null &&
                         !installedApp.isPendingInstall &&
                         normalizeVersion(release.tagName) != normalizeVersion(installedApp.installedVersion) &&
@@ -368,8 +366,6 @@ class DetailsViewModel(
 
                 val assetName = currentAssetName
                 if (assetName != null) {
-                    // Keep the partially/fully downloaded file so the user can resume
-                    // without re-downloading. It will be cleaned up in onCleared().
                     cachedDownloadAssetName = assetName
                     val releaseTag = _state.value.selectedRelease?.tagName ?: ""
                     appendLog(
@@ -718,11 +714,11 @@ class DetailsViewModel(
                     extOrMime = assetName.substringAfterLast('.', "").lowercase()
                 )
 
-                // Check if file was already downloaded (e.g. user dismissed install dialog)
                 val existingPath = downloader.getDownloadedFilePath(assetName)
                 val filePath: String
 
-                if (existingPath != null && java.io.File(existingPath).exists()) {
+                val existingFile = existingPath?.let { java.io.File(it) }
+                if (existingFile != null && existingFile.exists() && existingFile.length() == sizeBytes) {
                     logger.debug("Reusing already downloaded file: $assetName")
                     filePath = existingPath
                     _state.value = _state.value.copy(
@@ -752,7 +748,6 @@ class DetailsViewModel(
                     filePath = downloader.getDownloadedFilePath(assetName)
                         ?: throw IllegalStateException("Downloaded file not found")
 
-                    // Cache asset name so it persists for reuse until screen is left
                     cachedDownloadAssetName = assetName
                 }
 
@@ -1005,8 +1000,6 @@ class DetailsViewModel(
         super.onCleared()
         currentDownloadJob?.cancel()
 
-        // When the screen is actually left (ViewModel destroyed), clean up any
-        // in-progress or cached download file so we don't accumulate stale files.
         val assetsToClean = listOfNotNull(currentAssetName, cachedDownloadAssetName).distinct()
         if (assetsToClean.isNotEmpty()) {
             viewModelScope.launch {
@@ -1048,12 +1041,10 @@ class DetailsViewModel(
             normalizeVersion(it.tagName) == normalizedCurrent
         }
 
-        // Both found in list → use list order (newer = lower index)
         if (candidateIndex != -1 && currentIndex != -1) {
             return candidateIndex > currentIndex
         }
 
-        // Fallback: semantic version comparison
         return compareSemanticVersions(normalizedCandidate, normalizedCurrent) < 0
     }
 

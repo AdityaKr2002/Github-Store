@@ -176,7 +176,7 @@ object DeepLinkParser {
     }
 
     fun extractSupportedUrl(text: String): String? {
-        val regex = """https?://(?:www\.)?(?:github\.com|github-store\.org)[^\s<>"']+""".toRegex(RegexOption.IGNORE_CASE)
+        val regex = """https?://(?:www\.)?(?:github\.com|github-store\.org)(?=[/\s?#]|$)[^\s<>"')\],;.!]*""".toRegex(RegexOption.IGNORE_CASE)
         return regex.find(text)?.value
     }
 }

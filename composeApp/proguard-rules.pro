@@ -1,93 +1,36 @@
-# === CRITICAL: Keep Everything for Networking ===
--keeppackagenames io.ktor.**
--keeppackagenames okhttp3.**
--keeppackagenames okio.**
+# ============================================================================
+# ProGuard / R8 Rules for GitHub Store (KMP + Compose Multiplatform)
+# ============================================================================
+# Used with: proguard-android-optimize.txt (enables optimization passes)
+# ============================================================================
 
-# Kotlin
--keep class kotlin.** { *; }
--keep class kotlinx.** { *; }
--keepclassmembers class kotlin.** { *; }
+# ── General Attributes ──────────────────────────────────────────────────────
+-keepattributes Signature
+-keepattributes *Annotation*
+-keepattributes InnerClasses,EnclosingMethod
+-keepattributes SourceFile,LineNumberTable
+-keepattributes Exceptions
 
-# Coroutines
--keep class kotlinx.coroutines.** { *; }
+# ── Kotlin Core ─────────────────────────────────────────────────────────────
+# Keep Kotlin metadata for reflection used by serialization & Koin
+-keep class kotlin.Metadata { *; }
+-keep class kotlin.reflect.jvm.internal.** { *; }
+-dontwarn kotlin.**
+-dontwarn kotlinx.**
+
+# ── Kotlin Coroutines ──────────────────────────────────────────────────────
 -keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
 -keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
 -keepclassmembernames class kotlinx.** { volatile <fields>; }
+-dontwarn kotlinx.coroutines.**
 
-# === Ktor - Keep EVERYTHING ===
--keep class io.ktor.** { *; }
--keep interface io.ktor.** { *; }
--keepclassmembers class io.ktor.** { *; }
--keepnames class io.ktor.** { *; }
--dontwarn io.ktor.**
-
-# Ktor Debug
--dontwarn java.lang.management.**
-
-# === OkHttp - Keep EVERYTHING ===
--keep class okhttp3.** { *; }
--keep interface okhttp3.** { *; }
--keepclassmembers class okhttp3.** { *; }
--keepnames class okhttp3.** { *; }
--dontwarn okhttp3.**
-
-# === Okio - Keep EVERYTHING ===
--keep class okio.** { *; }
--keepclassmembers class okio.** { *; }
--keepnames class okio.** { *; }
--dontwarn okio.**
-
-# === Network Stack - Keep EVERYTHING ===
--keep class java.net.** { *; }
--keep class javax.net.** { *; }
--keep class sun.security.ssl.** { *; }
--keepclassmembers class java.net.** { *; }
--keepclassmembers class javax.net.** { *; }
-
-# DNS Resolution
--keep class java.net.InetAddress { *; }
--keep class java.net.Inet4Address { *; }
--keep class java.net.Inet6Address { *; }
--keep class java.net.InetSocketAddress { *; }
-
-# SSL/TLS
--keep class javax.net.ssl.** { *; }
--keep class org.conscrypt.** { *; }
--dontwarn org.conscrypt.**
-
-# === Kotlinx Serialization ===
--keepattributes *Annotation*, InnerClasses
--dontnote kotlinx.serialization.**
--keep,includedescriptorclasses class zed.rainxch.githubstore.**$$serializer { *; }
--keep @kotlinx.serialization.Serializable class zed.rainxch.githubstore.** { *; }
--keepclassmembers @kotlinx.serialization.Serializable class zed.rainxch.githubstore.** {
-    *** Companion;
-}
-
-# Keep your models
--keep class zed.rainxch.githubstore.core.domain.model.** { *; }
-
-# === AndroidX Security ===
--keep class androidx.security.crypto.** { *; }
--keep class com.google.crypto.tink.** { *; }
--dontwarn com.google.crypto.tink.**
--dontwarn com.google.errorprone.annotations.**
-
-# BuildConfig
--keep class zed.rainxch.githubstore.BuildConfig { *; }
-
-# General
--keepattributes Signature
--keepattributes Exceptions
--keepattributes *Annotation*
--keepattributes SourceFile,LineNumberTable
-
-# === START: Auth Fix ===
--dontoptimize
--keepattributes *Annotation*,Signature,Exception,InnerClasses,EnclosingMethod
-
-# Keep serialization infrastructure
+# ── Kotlinx Serialization ──────────────────────────────────────────────────
+# Serialization engine internals
 -keep class kotlinx.serialization.** { *; }
+-keepclassmembers class kotlinx.serialization.json.** { *** Companion; }
+-dontnote kotlinx.serialization.**
+
+# Generated serializers for ALL @Serializable classes
 -keep class **$$serializer { *; }
 -keepclassmembers @kotlinx.serialization.Serializable class ** {
     *** Companion;
@@ -95,30 +38,164 @@
     kotlinx.serialization.KSerializer serializer(...);
 }
 
-# Keep Ktor plugins
+# App @Serializable classes (DTOs, models, navigation routes) across all packages
+-keep @kotlinx.serialization.Serializable class zed.rainxch.** { *; }
+-keep,includedescriptorclasses class zed.rainxch.**$$serializer { *; }
+-keepclassmembers @kotlinx.serialization.Serializable class zed.rainxch.** {
+    *** Companion;
+}
+
+# ── Navigation Routes ──────────────────────────────────────────────────────
+# Type-safe navigation requires these classes to survive R8
+-keep class zed.rainxch.githubstore.app.navigation.GithubStoreGraph { *; }
+-keep class zed.rainxch.githubstore.app.navigation.GithubStoreGraph$* { *; }
+
+# ── Network DTOs – Core Module ─────────────────────────────────────────────
+-keep class zed.rainxch.core.data.dto.** { *; }
+
+# ── Network DTOs – Feature Modules ─────────────────────────────────────────
+-keep class zed.rainxch.search.data.dto.** { *; }
+-keep class zed.rainxch.devprofile.data.dto.** { *; }
+-keep class zed.rainxch.home.data.dto.** { *; }
+
+# ── Domain Models ──────────────────────────────────────────────────────────
+-keep class zed.rainxch.core.domain.model.GithubRepoSummary { *; }
+-keep class zed.rainxch.core.domain.model.GithubUser { *; }
+
+# Keep enums used by Room TypeConverters and serialization
+-keep class zed.rainxch.core.domain.model.InstallSource { *; }
+-keep class zed.rainxch.core.domain.model.AppTheme { *; }
+-keep class zed.rainxch.core.domain.model.FontTheme { *; }
+-keep class zed.rainxch.core.domain.model.Platform { *; }
+-keep class zed.rainxch.core.domain.model.SystemArchitecture { *; }
+-keep class zed.rainxch.core.domain.model.PackageChangeType { *; }
+
+# ── Room Database ──────────────────────────────────────────────────────────
+# Database class and generated implementation
+-keep class zed.rainxch.core.data.local.db.AppDatabase { *; }
+-keep class zed.rainxch.core.data.local.db.AppDatabase_Impl { *; }
+
+# Entities
+-keep class zed.rainxch.core.data.local.db.entities.** { *; }
+
+# DAOs
+-keep interface zed.rainxch.core.data.local.db.dao.** { *; }
+-keep class zed.rainxch.core.data.local.db.dao.** { *; }
+
+# Room runtime
+-keep class androidx.room.** { *; }
+-dontwarn androidx.room.**
+
+# ── Ktor ───────────────────────────────────────────────────────────────────
+# Engine discovery, plugin system, and content negotiation use reflection
+-keep class io.ktor.client.engine.** { *; }
 -keep class io.ktor.client.plugins.** { *; }
 -keep class io.ktor.serialization.** { *; }
+-keep class io.ktor.utils.io.** { *; }
+-keep class io.ktor.http.** { *; }
+-keepnames class io.ktor.** { *; }
+-dontwarn io.ktor.**
+-dontwarn java.lang.management.**
 
-# Keep your entire core package (narrow this down later)
--keep class zed.rainxch.githubstore.core.** { *; }
--keepclassmembers class zed.rainxch.githubstore.core.** { *; }
-# === END: Auth Fix ===
+# ── OkHttp (Ktor engine) ──────────────────────────────────────────────────
+-keep class okhttp3.internal.platform.** { *; }
+-keepnames class okhttp3.internal.publicsuffix.PublicSuffixDatabase
+-dontwarn okhttp3.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**
 
--keep class zed.rainxch.githubstore.core.data.remote.dto.** { *; }
--keep class zed.rainxch.githubstore.core.domain.model.auth.** { *; }
+# ── Okio ───────────────────────────────────────────────────────────────────
+-dontwarn okio.**
 
-# If your models are in different packages, list them:
--keep class zed.rainxch.githubstore.**.*DeviceStart* { *; }
--keep class zed.rainxch.githubstore.**.*DeviceToken* { *; }
--keep class zed.rainxch.githubstore.**.*AuthConfig* { *; }
+# ── SSL/TLS ────────────────────────────────────────────────────────────────
+-keep class org.conscrypt.** { *; }
+-dontwarn org.conscrypt.**
 
-# Keep the companion objects explicitly
--keepclassmembers class zed.rainxch.githubstore.**.DeviceStart {
-    public static ** Companion;
+# ── Koin DI ────────────────────────────────────────────────────────────────
+# Koin uses reflection for constructor injection
+-keep class org.koin.** { *; }
+-keep interface org.koin.** { *; }
+-dontwarn org.koin.**
+
+# Keep ViewModels so Koin can instantiate them
+-keep class zed.rainxch.**.presentation.**ViewModel { *; }
+-keep class zed.rainxch.**.presentation.**ViewModel$* { *; }
+
+# ── Compose / AndroidX ────────────────────────────────────────────────────
+# Compose runtime and navigation (most rules come bundled with the library)
+-keep class androidx.compose.** { *; }
+-dontwarn androidx.compose.**
+-keep class androidx.navigation.** { *; }
+-keep class androidx.lifecycle.** { *; }
+-dontwarn androidx.lifecycle.**
+
+# ── DataStore ──────────────────────────────────────────────────────────────
+-keep class androidx.datastore.** { *; }
+-keepclassmembers class androidx.datastore.preferences.** { *; }
+-dontwarn androidx.datastore.**
+
+# ── Landscapist / Coil3 (Image Loading) ────────────────────────────────────
+-keep class com.skydoves.landscapist.** { *; }
+-keep interface com.skydoves.landscapist.** { *; }
+-keep class coil3.** { *; }
+-dontwarn coil3.**
+-dontwarn com.skydoves.landscapist.**
+
+# ── Multiplatform Markdown Renderer ────────────────────────────────────────
+-keep class com.mikepenz.markdown.** { *; }
+-keep class org.intellij.markdown.** { *; }
+-dontwarn com.mikepenz.markdown.**
+-dontwarn org.intellij.markdown.**
+
+# ── Kermit Logging ─────────────────────────────────────────────────────────
+-keep class co.touchlab.kermit.** { *; }
+-dontwarn co.touchlab.kermit.**
+
+# ── MOKO Permissions ──────────────────────────────────────────────────────
+-keep class dev.icerock.moko.permissions.** { *; }
+-dontwarn dev.icerock.moko.**
+
+# ── BuildKonfig (Generated Build Constants) ────────────────────────────────
+-keep class zed.rainxch.githubstore.BuildConfig { *; }
+-keep class zed.rainxch.**.BuildKonfig { *; }
+-keep class **.BuildKonfig { *; }
+
+# ── AndroidX Security / Crypto ─────────────────────────────────────────────
+-keep class androidx.security.crypto.** { *; }
+-keep class com.google.crypto.tink.** { *; }
+-dontwarn com.google.crypto.tink.**
+-dontwarn com.google.errorprone.annotations.**
+
+# ── Firebase (if integrated) ──────────────────────────────────────────────
+-keep class com.google.firebase.** { *; }
+-dontwarn com.google.firebase.**
+
+# ── Enum safety ────────────────────────────────────────────────────────────
+# Keep all enum values and valueOf methods (used by serialization/Room)
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
 }
--keepclassmembers class zed.rainxch.githubstore.**.DeviceTokenSuccess {
-    public static ** Companion;
+
+# ── Parcelable ─────────────────────────────────────────────────────────────
+-keepclassmembers class * implements android.os.Parcelable {
+    public static final ** CREATOR;
 }
--keepclassmembers class zed.rainxch.githubstore.**.DeviceTokenError {
-    public static ** Companion;
+
+# ── ServiceLoader (used by Ktor, Koin, etc.) ──────────────────────────────
+-keepnames class * implements java.io.Serializable
+-keepclassmembers class * implements java.io.Serializable {
+    static final long serialVersionUID;
+    private static final java.io.ObjectStreamField[] serialPersistentFields;
+    !static !transient <fields>;
+    private void writeObject(java.io.ObjectOutputStream);
+    private void readObject(java.io.ObjectInputStream);
+    java.lang.Object writeReplace();
+    java.lang.Object readResolve();
 }
+
+# ── Suppress Warnings for Missing Classes ──────────────────────────────────
+-dontwarn java.lang.invoke.StringConcatFactory
+-dontwarn javax.annotation.**
+-dontwarn org.slf4j.**
+-dontwarn org.codehaus.mojo.animal_sniffer.**

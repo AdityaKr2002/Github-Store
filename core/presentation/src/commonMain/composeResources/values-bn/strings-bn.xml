@@ -367,7 +367,7 @@
     <string name="last_checked_never">কখনো পরীক্ষা করা হয়নি</string>
     <string name="last_checked_just_now">এইমাত্র</string>
     <string name="last_checked_minutes_ago">%1$d মিনিট আগে</string>
-    <string name="last_checked_hours_ago">%1$d ঘন্টা আগে</string>
+    <string name="last_checked_hours_ago">%1$d ঘণ্টা আগে</string>
     <string name="checking_for_updates">আপডেট পরীক্ষা করা হচ্ছে…</string>
 
 </resources>
