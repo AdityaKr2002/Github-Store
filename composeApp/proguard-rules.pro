@@ -123,10 +123,7 @@
 
 # ── Compose / AndroidX ────────────────────────────────────────────────────
 # Compose runtime and navigation (most rules come bundled with the library)
--keep class androidx.compose.** { *; }
 -dontwarn androidx.compose.**
--keep class androidx.navigation.** { *; }
--keep class androidx.lifecycle.** { *; }
 -dontwarn androidx.lifecycle.**
 
 # ── DataStore ──────────────────────────────────────────────────────────────
@@ -182,7 +179,7 @@
     public static final ** CREATOR;
 }
 
-# ── ServiceLoader (used by Ktor, Koin, etc.) ──────────────────────────────
+# ── Java Serializable Compatibility ───────────────────────────────────────
 -keepnames class * implements java.io.Serializable
 -keepclassmembers class * implements java.io.Serializable {
     static final long serialVersionUID;

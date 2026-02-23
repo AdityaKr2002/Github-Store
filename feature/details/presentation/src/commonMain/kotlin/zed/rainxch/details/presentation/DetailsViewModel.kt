@@ -368,10 +368,11 @@ class DetailsViewModel(
                 if (assetName != null) {
                     cachedDownloadAssetName = assetName
                     val releaseTag = _state.value.selectedRelease?.tagName ?: ""
+                    val totalSize = _state.value.totalBytes ?: _state.value.downloadedBytes
                     appendLog(
                         assetName = assetName,
-                        size = _state.value.downloadedBytes,
                         tag = releaseTag,
+                        size = totalSize,
                         result = LogResult.Cancelled
                     )
                     logger.debug("Download cancelled – keeping file for potential reuse: $assetName")
@@ -1052,14 +1053,22 @@ class DetailsViewModel(
      * Compares two semantic version strings. Returns positive if a > b, negative if a < b, 0 if equal.
      */
     private fun compareSemanticVersions(a: String, b: String): Int {
-        val aParts = a.split("[.\\-]".toRegex())
-        val bParts = b.split("[.\\-]".toRegex())
+        val aCore = a.split("-", limit = 2)
+        val bCore = b.split("-", limit = 2)
+        val aParts = aCore[0].split(".")
+        val bParts = bCore[0].split(".")
+
         val maxLen = maxOf(aParts.size, bParts.size)
         for (i in 0 until maxLen) {
             val aPart = aParts.getOrNull(i)?.filter { it.isDigit() }?.toLongOrNull() ?: 0L
             val bPart = bParts.getOrNull(i)?.filter { it.isDigit() }?.toLongOrNull() ?: 0L
             if (aPart != bPart) return aPart.compareTo(bPart)
         }
+
+        val aHasPre = aCore.size > 1
+        val bHasPre = bCore.size > 1
+        if (aHasPre != bHasPre) return if (aHasPre) -1 else 1
+
         return 0
     }
 
