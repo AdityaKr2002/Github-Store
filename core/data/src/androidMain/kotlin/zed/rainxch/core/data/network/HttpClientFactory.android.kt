@@ -6,30 +6,65 @@ import java.net.InetSocketAddress
 import java.net.Proxy
 import okhttp3.Credentials
 import zed.rainxch.core.domain.model.ProxyConfig
+import java.net.PasswordAuthentication
+import java.net.ProxySelector
 
-actual fun createPlatformHttpClient(proxyConfig: ProxyConfig?): HttpClient {
+actual fun createPlatformHttpClient(proxyConfig: ProxyConfig): HttpClient {
     return HttpClient(OkHttp) {
         engine {
-            proxyConfig?.let { config ->
-                val javaProxyType = when (config.type) {
-                    ProxyConfig.ProxyType.HTTP -> Proxy.Type.HTTP
-                    ProxyConfig.ProxyType.SOCKS -> Proxy.Type.SOCKS
+            when (proxyConfig) {
+                is ProxyConfig.None -> {
+                    proxy = Proxy.NO_PROXY
                 }
-                proxy = Proxy(javaProxyType, InetSocketAddress(config.host, config.port))
 
-                if (config.username != null) {
+                is ProxyConfig.System -> {
                     config {
-                        proxyAuthenticator { _, response ->
-                            response.request.newBuilder()
-                                .header(
-                                    "Proxy-Authorization",
-                                    Credentials.basic(
-                                        config.username!!,
-                                        config.password.orEmpty()
+                        proxySelector(ProxySelector.getDefault())
+                    }
+                }
+
+                is ProxyConfig.Http -> {
+                    proxy = Proxy(
+                        Proxy.Type.HTTP,
+                        InetSocketAddress(proxyConfig.host, proxyConfig.port)
+                    )
+                    if (proxyConfig.username != null) {
+                        config {
+                            proxyAuthenticator { _, response ->
+                                response.request.newBuilder()
+                                    .header(
+                                        "Proxy-Authorization",
+                                        Credentials.basic(
+                                            proxyConfig.username!!,
+                                            proxyConfig.password.orEmpty()
+                                        )
                                     )
-                                )
-                                .build()
+                                    .build()
+                            }
                         }
+                    }
+                }
+
+                is ProxyConfig.Socks -> {
+                    proxy = Proxy(
+                        Proxy.Type.SOCKS,
+                        InetSocketAddress(proxyConfig.host, proxyConfig.port)
+                    )
+
+                    if (proxyConfig.username != null) {
+                        java.net.Authenticator.setDefault(object : java.net.Authenticator() {
+                            override fun getPasswordAuthentication(): PasswordAuthentication? {
+                                if (requestingHost == proxyConfig.host &&
+                                    requestingPort == proxyConfig.port
+                                ) {
+                                    return PasswordAuthentication(
+                                        proxyConfig.username,
+                                        proxyConfig.password.orEmpty().toCharArray()
+                                    )
+                                }
+                                return null
+                            }
+                        })
                     }
                 }
             }

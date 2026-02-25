@@ -19,12 +19,12 @@ import zed.rainxch.core.domain.repository.RateLimitRepository
 import java.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 
-expect fun createPlatformHttpClient(proxyConfig: ProxyConfig? = null): HttpClient
+expect fun createPlatformHttpClient(proxyConfig: ProxyConfig): HttpClient
 
 fun createGitHubHttpClient(
     tokenStore: TokenStore,
     rateLimitRepository: RateLimitRepository,
-    proxyConfig: ProxyConfig? = null
+    proxyConfig: ProxyConfig = ProxyConfig.None
 ): HttpClient {
     val json = Json {
         ignoreUnknownKeys = true
@@ -32,7 +32,6 @@ fun createGitHubHttpClient(
     }
 
     return createPlatformHttpClient(proxyConfig).config {
-
         install(RateLimitInterceptor) {
             this.rateLimitRepository = rateLimitRepository
         }

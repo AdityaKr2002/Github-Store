@@ -1,17 +1,37 @@
 package zed.rainxch.core.data.network
 
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import zed.rainxch.core.domain.model.ProxyConfig
 
 object ProxyManager {
-    private val _proxyConfig = MutableStateFlow<ProxyConfig?>(null)
-    val currentProxyConfig = _proxyConfig.asStateFlow()
+    private val _proxyConfig = MutableStateFlow<ProxyConfig>(ProxyConfig.None)
+    val currentProxyConfig: StateFlow<ProxyConfig> = _proxyConfig.asStateFlow()
 
-    fun setProxyConfig(
-        config: ProxyConfig?
+    fun setNoProxy() {
+        _proxyConfig.value = ProxyConfig.None
+    }
+
+    fun setSystemProxy() {
+        _proxyConfig.value = ProxyConfig.System
+    }
+
+    fun setHttpProxy(
+        host: String,
+        port: Int,
+        username: String? = null,
+        password: String? = null
     ) {
-        _proxyConfig.update { config }
+        _proxyConfig.value = ProxyConfig.Http(host, port, username, password)
+    }
+
+    fun setSocksProxy(
+        host: String,
+        port: Int,
+        username: String? = null,
+        password: String? = null
+    ) {
+        _proxyConfig.value = ProxyConfig.Socks(host, port, username, password)
     }
 }
