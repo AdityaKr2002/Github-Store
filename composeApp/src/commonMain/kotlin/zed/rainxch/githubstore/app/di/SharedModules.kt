@@ -15,7 +15,8 @@ val mainModule: Module = module {
             installedAppsRepository = get(),
             rateLimitRepository = get(),
             syncUseCase = get(),
-            authenticationState = get()
+            authenticationState = get(),
+            proxyRepository = get()
         )
     }
 }

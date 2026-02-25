@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import zed.rainxch.core.domain.model.ProxyConfig
+import zed.rainxch.core.domain.repository.ProxyRepository
 import zed.rainxch.core.domain.repository.ThemesRepository
 import zed.rainxch.core.domain.utils.BrowserHelper
 import zed.rainxch.profile.domain.repository.ProfileRepository
@@ -17,7 +19,8 @@ import zed.rainxch.profile.domain.repository.ProfileRepository
 class ProfileViewModel(
     private val browserHelper: BrowserHelper,
     private val themesRepository: ThemesRepository,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val proxyRepository: ProxyRepository
 ) : ViewModel() {
 
     private var hasLoadedInitialData = false
@@ -29,6 +32,7 @@ class ProfileViewModel(
                 loadCurrentTheme()
                 collectIsUserLoggedIn()
                 loadVersionName()
+                loadProxyConfig()
 
                 hasLoadedInitialData = true
             }
@@ -90,6 +94,38 @@ class ProfileViewModel(
             themesRepository.getFontTheme().collect { fontTheme ->
                 _state.update {
                     it.copy(selectedFontTheme = fontTheme)
+                }
+            }
+        }
+    }
+
+    private fun loadProxyConfig() {
+        viewModelScope.launch {
+            proxyRepository.getProxyConfig().collect { config ->
+                _state.update {
+                    it.copy(
+                        proxyType = ProxyType.fromConfig(config),
+                        proxyHost = when (config) {
+                            is ProxyConfig.Http -> config.host
+                            is ProxyConfig.Socks -> config.host
+                            else -> it.proxyHost
+                        },
+                        proxyPort = when (config) {
+                            is ProxyConfig.Http -> config.port.toString()
+                            is ProxyConfig.Socks -> config.port.toString()
+                            else -> it.proxyPort
+                        },
+                        proxyUsername = when (config) {
+                            is ProxyConfig.Http -> config.username ?: ""
+                            is ProxyConfig.Socks -> config.username ?: ""
+                            else -> it.proxyUsername
+                        },
+                        proxyPassword = when (config) {
+                            is ProxyConfig.Http -> config.password ?: ""
+                            is ProxyConfig.Socks -> config.password ?: ""
+                            else -> it.proxyPassword
+                        }
+                    )
                 }
             }
         }
@@ -160,6 +196,56 @@ class ProfileViewModel(
             is ProfileAction.OnDarkThemeChange -> {
                 viewModelScope.launch {
                     themesRepository.setDarkTheme(action.isDarkTheme)
+                }
+            }
+
+            is ProfileAction.OnProxyTypeSelected -> {
+                _state.update { it.copy(proxyType = action.type) }
+                if (action.type == ProxyType.NONE || action.type == ProxyType.SYSTEM) {
+                    val config = when (action.type) {
+                        ProxyType.NONE -> ProxyConfig.None
+                        ProxyType.SYSTEM -> ProxyConfig.System
+                        else -> return
+                    }
+                    viewModelScope.launch {
+                        proxyRepository.setProxyConfig(config)
+                    }
+                }
+            }
+
+            is ProfileAction.OnProxyHostChanged -> {
+                _state.update { it.copy(proxyHost = action.host) }
+            }
+
+            is ProfileAction.OnProxyPortChanged -> {
+                _state.update { it.copy(proxyPort = action.port) }
+            }
+
+            is ProfileAction.OnProxyUsernameChanged -> {
+                _state.update { it.copy(proxyUsername = action.username) }
+            }
+
+            is ProfileAction.OnProxyPasswordChanged -> {
+                _state.update { it.copy(proxyPassword = action.password) }
+            }
+
+            ProfileAction.OnProxySave -> {
+                val currentState = _state.value
+                val port = currentState.proxyPort.toIntOrNull() ?: return
+                val host = currentState.proxyHost.takeIf { it.isNotBlank() } ?: return
+                val username = currentState.proxyUsername.takeIf { it.isNotBlank() }
+                val password = currentState.proxyPassword.takeIf { it.isNotBlank() }
+
+                val config = when (currentState.proxyType) {
+                    ProxyType.HTTP -> ProxyConfig.Http(host, port, username, password)
+                    ProxyType.SOCKS -> ProxyConfig.Socks(host, port, username, password)
+                    ProxyType.NONE -> ProxyConfig.None
+                    ProxyType.SYSTEM -> ProxyConfig.System
+                }
+
+                viewModelScope.launch {
+                    proxyRepository.setProxyConfig(config)
+                    _events.send(ProfileEvent.OnProxySaved)
                 }
             }
         }

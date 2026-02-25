@@ -40,6 +40,7 @@ import zed.rainxch.core.presentation.utils.ObserveAsEvents
 import zed.rainxch.profile.presentation.components.LogoutDialog
 import zed.rainxch.profile.presentation.components.sections.about
 import zed.rainxch.profile.presentation.components.sections.logout
+import zed.rainxch.profile.presentation.components.sections.networkSection
 import zed.rainxch.profile.presentation.components.sections.profile
 import zed.rainxch.profile.presentation.components.sections.settings
 
@@ -65,6 +66,12 @@ fun ProfileRoot(
             is ProfileEvent.OnLogoutError -> {
                 coroutineScope.launch {
                     snackbarState.showSnackbar(event.message)
+                }
+            }
+
+            ProfileEvent.OnProxySaved -> {
+                coroutineScope.launch {
+                    snackbarState.showSnackbar(getString(Res.string.proxy_saved))
                 }
             }
         }
@@ -132,6 +139,15 @@ fun ProfileScreen(
             }
 
             settings(
+                state = state,
+                onAction = onAction
+            )
+
+            item {
+                Spacer(Modifier.height(16.dp))
+            }
+
+            networkSection(
                 state = state,
                 onAction = onAction
             )

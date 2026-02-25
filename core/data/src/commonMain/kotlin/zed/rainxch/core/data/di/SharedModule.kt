@@ -21,6 +21,7 @@ import zed.rainxch.core.data.repository.FavouritesRepositoryImpl
 import zed.rainxch.core.data.repository.InstalledAppsRepositoryImpl
 import zed.rainxch.core.data.repository.RateLimitRepositoryImpl
 import zed.rainxch.core.data.repository.StarredRepositoryImpl
+import zed.rainxch.core.data.repository.ProxyRepositoryImpl
 import zed.rainxch.core.data.repository.ThemesRepositoryImpl
 import zed.rainxch.core.domain.getPlatform
 import zed.rainxch.core.domain.logging.GitHubStoreLogger
@@ -28,6 +29,7 @@ import zed.rainxch.core.domain.model.Platform
 import zed.rainxch.core.domain.repository.AuthenticationState
 import zed.rainxch.core.domain.repository.FavouritesRepository
 import zed.rainxch.core.domain.repository.InstalledAppsRepository
+import zed.rainxch.core.domain.repository.ProxyRepository
 import zed.rainxch.core.domain.repository.RateLimitRepository
 import zed.rainxch.core.domain.repository.StarredRepository
 import zed.rainxch.core.domain.repository.ThemesRepository
@@ -80,6 +82,12 @@ val coreModule = module {
 
     single<ThemesRepository> {
         ThemesRepositoryImpl(
+            preferences = get()
+        )
+    }
+
+    single<ProxyRepository> {
+        ProxyRepositoryImpl(
             preferences = get()
         )
     }
