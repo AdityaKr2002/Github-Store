@@ -315,15 +315,11 @@
     <!-- Install status -->
     <string name="pending_install">Ожидает установки</string>
 
-    <!-- Uninstall / Open -->
-    <string name="uninstall">Удалить</string>
+    <!-- Open -->
     <string name="open_app">Открыть</string>
-    <string name="downgrade_requires_uninstall">Для понижения версии требуется удаление</string>
-    <string name="downgrade_warning_message">Для установки версии %1$s необходимо сначала удалить текущую версию (%2$s). Данные приложения будут потеряны.</string>
-    <string name="uninstall_first">Сначала удалить</string>
+    <string name="downgrade_warning_message">Невозможно установить версию %1$s, так как более новая версия (%2$s) уже установлена. Пожалуйста, сначала удалите текущую версию вручную.</string>
     <string name="install_version">Установить %1$s</string>
     <string name="failed_to_open_app">Не удалось открыть %1$s</string>
-    <string name="failed_to_uninstall">Не удалось удалить %1$s</string>
 
     <!-- Version picker -->
     <string name="latest_badge">Последняя</string>
@@ -351,5 +347,10 @@
     <string name="proxy_system_description">Использует прокси-настройки устройства</string>
     <string name="proxy_port_error">Порт должен быть 1–65535</string>
     <string name="proxy_none_description">Прямое подключение, без прокси</string>
+    <string name="failed_to_save_proxy_settings">Не удалось сохранить настройки прокси</string>
+    <string name="proxy_host_required">Требуется хост прокси</string>
+    <string name="invalid_proxy_port">Недопустимый порт прокси</string>
+    <string name="proxy_show_password">Показать пароль</string>
+    <string name="proxy_hide_password">Скрыть пароль</string>
 
 </resources>

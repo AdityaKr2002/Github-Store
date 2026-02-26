@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.koin.dsl.module
 import zed.rainxch.core.data.data_source.TokenStore
 import zed.rainxch.core.data.data_source.impl.DefaultTokenStore
@@ -107,27 +108,30 @@ val coreModule = module {
 
 val networkModule = module {
     single<GitHubClientProvider> {
-        // Load saved proxy config SYNCHRONOUSLY before creating the client provider
-        // so the very first HTTP client uses the correct proxy. This is critical for
-        // users in regions where direct GitHub access is blocked (e.g. China).
-        runBlocking {
-            val config = get<ProxyRepository>().getProxyConfig().first()
-            when (config) {
-                is ProxyConfig.None -> ProxyManager.setNoProxy()
-                is ProxyConfig.System -> ProxyManager.setSystemProxy()
-                is ProxyConfig.Http -> ProxyManager.setHttpProxy(
-                    host = config.host,
-                    port = config.port,
-                    username = config.username,
-                    password = config.password
-                )
-                is ProxyConfig.Socks -> ProxyManager.setSocksProxy(
-                    host = config.host,
-                    port = config.port,
-                    username = config.username,
-                    password = config.password
-                )
-            }
+        val config = runBlocking {
+            runCatching {
+                withTimeout(1_500L) {
+                    get<ProxyRepository>().getProxyConfig().first()
+                }
+            }.getOrDefault(ProxyConfig.None)
+        }
+
+        when (config) {
+            is ProxyConfig.None -> ProxyManager.setNoProxy()
+            is ProxyConfig.System -> ProxyManager.setSystemProxy()
+            is ProxyConfig.Http -> ProxyManager.setHttpProxy(
+                host = config.host,
+                port = config.port,
+                username = config.username,
+                password = config.password
+            )
+
+            is ProxyConfig.Socks -> ProxyManager.setSocksProxy(
+                host = config.host,
+                port = config.port,
+                username = config.username,
+                password = config.password
+            )
         }
 
         GitHubClientProvider(
