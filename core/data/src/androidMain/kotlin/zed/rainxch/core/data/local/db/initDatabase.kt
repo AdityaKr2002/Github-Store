@@ -5,6 +5,7 @@ import androidx.room.Room
 import kotlinx.coroutines.Dispatchers
 import zed.rainxch.core.data.local.db.migrations.MIGRATION_1_2
 import zed.rainxch.core.data.local.db.migrations.MIGRATION_2_3
+import zed.rainxch.core.data.local.db.migrations.MIGRATION_3_4
 
 fun initDatabase(context: Context): AppDatabase {
     val appContext = context.applicationContext
@@ -18,6 +19,7 @@ fun initDatabase(context: Context): AppDatabase {
         .addMigrations(
             MIGRATION_1_2,
             MIGRATION_2_3,
+            MIGRATION_3_4,
         )
         .build()
 }

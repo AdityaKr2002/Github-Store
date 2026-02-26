@@ -23,6 +23,8 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import zed.rainxch.core.data.cache.CacheManager
+import zed.rainxch.core.data.cache.CacheTtl
 import zed.rainxch.core.data.dto.GithubRepoNetworkModel
 import zed.rainxch.core.data.dto.GithubRepoSearchResponse
 import zed.rainxch.core.data.mappers.toSummary
@@ -43,8 +45,12 @@ class HomeRepositoryImpl(
     private val httpClient: HttpClient,
     private val platform: Platform,
     private val cachedDataSource: CachedRepositoriesDataSource,
-    private val logger: GitHubStoreLogger
+    private val logger: GitHubStoreLogger,
+    private val cacheManager: CacheManager
 ) : HomeRepository {
+
+    private fun cacheKey(category: String, page: Int): String =
+        "home:${category}:${platform.name}:page$page"
 
     @OptIn(ExperimentalTime::class)
     override fun getTrendingRepositories(page: Int): Flow<PaginatedDiscoveryRepositories> = flow {
@@ -54,22 +60,28 @@ class HomeRepositoryImpl(
             val cachedData = cachedDataSource.getCachedTrendingRepos()
 
             if (cachedData != null && cachedData.repositories.isNotEmpty()) {
-                logger.debug("Using cached data: ${cachedData.repositories.size} repos")
+                logger.debug("Using mirror cached data: ${cachedData.repositories.size} repos")
 
                 val repos = cachedData.repositories.map { it.toGithubRepoSummary() }
 
-                emit(
-                    PaginatedDiscoveryRepositories(
-                        repos = repos,
-                        hasMore = false,
-                        nextPageIndex = 2
-                    )
+                val result = PaginatedDiscoveryRepositories(
+                    repos = repos,
+                    hasMore = false,
+                    nextPageIndex = 2
                 )
-
+                cacheManager.put(cacheKey("trending", page), result, CacheTtl.HOME_REPOS)
+                emit(result)
                 return@flow
             } else {
-                logger.debug("No cached data available, falling back to live API")
+                logger.debug("No mirror data, checking local cache...")
             }
+        }
+
+        val localCached = cacheManager.get<PaginatedDiscoveryRepositories>(cacheKey("trending", page))
+        if (localCached != null && localCached.repos.isNotEmpty()) {
+            logger.debug("Using locally cached trending repos: ${localCached.repos.size}")
+            emit(localCached)
+            return@flow
         }
 
         val thirtyDaysAgo = Clock.System.now()
@@ -82,7 +94,8 @@ class HomeRepositoryImpl(
                 baseQuery = "stars:>50 archived:false pushed:>=$thirtyDaysAgo",
                 sort = "stars",
                 order = "desc",
-                startPage = page
+                startPage = page,
+                category = "trending"
             )
         )
     }.flowOn(Dispatchers.IO)
@@ -95,22 +108,28 @@ class HomeRepositoryImpl(
             val cachedData = cachedDataSource.getCachedHotReleaseRepos()
 
             if (cachedData != null && cachedData.repositories.isNotEmpty()) {
-                logger.debug("Using cached data: ${cachedData.repositories.size} repos")
+                logger.debug("Using mirror cached data: ${cachedData.repositories.size} repos")
 
                 val repos = cachedData.repositories.map { it.toGithubRepoSummary() }
 
-                emit(
-                    PaginatedDiscoveryRepositories(
-                        repos = repos,
-                        hasMore = false,
-                        nextPageIndex = 2
-                    )
+                val result = PaginatedDiscoveryRepositories(
+                    repos = repos,
+                    hasMore = false,
+                    nextPageIndex = 2
                 )
-
+                cacheManager.put(cacheKey("hot_release", page), result, CacheTtl.HOME_REPOS)
+                emit(result)
                 return@flow
             } else {
-                logger.debug("No cached data available, falling back to live API")
+                logger.debug("No mirror data, checking local cache...")
             }
+        }
+
+        val localCached = cacheManager.get<PaginatedDiscoveryRepositories>(cacheKey("hot_release", page))
+        if (localCached != null && localCached.repos.isNotEmpty()) {
+            logger.debug("Using locally cached hot release repos: ${localCached.repos.size}")
+            emit(localCached)
+            return@flow
         }
 
         val fourteenDaysAgo = Clock.System.now()
@@ -123,7 +142,8 @@ class HomeRepositoryImpl(
                 baseQuery = "stars:>10 archived:false pushed:>=$fourteenDaysAgo",
                 sort = "updated",
                 order = "desc",
-                startPage = page
+                startPage = page,
+                category = "hot_release"
             )
         )
     }.flowOn(Dispatchers.IO)
@@ -136,22 +156,28 @@ class HomeRepositoryImpl(
             val cachedData = cachedDataSource.getCachedMostPopularRepos()
 
             if (cachedData != null && cachedData.repositories.isNotEmpty()) {
-                logger.debug("Using cached data: ${cachedData.repositories.size} repos")
+                logger.debug("Using mirror cached data: ${cachedData.repositories.size} repos")
 
                 val repos = cachedData.repositories.map { it.toGithubRepoSummary() }
 
-                emit(
-                    PaginatedDiscoveryRepositories(
-                        repos = repos,
-                        hasMore = false,
-                        nextPageIndex = 2
-                    )
+                val result = PaginatedDiscoveryRepositories(
+                    repos = repos,
+                    hasMore = false,
+                    nextPageIndex = 2
                 )
-
+                cacheManager.put(cacheKey("most_popular", page), result, CacheTtl.HOME_REPOS)
+                emit(result)
                 return@flow
             } else {
-                logger.debug("No cached data available, falling back to live API")
+                logger.debug("No mirror data, checking local cache...")
             }
+        }
+
+        val localCached = cacheManager.get<PaginatedDiscoveryRepositories>(cacheKey("most_popular", page))
+        if (localCached != null && localCached.repos.isNotEmpty()) {
+            logger.debug("Using locally cached most popular repos: ${localCached.repos.size}")
+            emit(localCached)
+            return@flow
         }
 
         val sixMonthsAgo = Clock.System.now()
@@ -169,7 +195,8 @@ class HomeRepositoryImpl(
                 baseQuery = "stars:>1000 archived:false created:<$sixMonthsAgo pushed:>=$oneYearAgo",
                 sort = "stars",
                 order = "desc",
-                startPage = page
+                startPage = page,
+                category = "most_popular"
             )
         )
     }.flowOn(Dispatchers.IO)
@@ -179,6 +206,7 @@ class HomeRepositoryImpl(
         sort: String,
         order: String,
         startPage: Int,
+        category: String,
         desiredCount: Int = 10
     ): Flow<PaginatedDiscoveryRepositories> = flow {
         val results = mutableListOf<GithubRepoSummary>()
@@ -247,13 +275,12 @@ class HomeRepositoryImpl(
                                 val newItems = results.subList(lastEmittedCount, results.size)
 
                                 if (newItems.isNotEmpty()) {
-                                    emit(
-                                        PaginatedDiscoveryRepositories(
-                                            repos = newItems.toList(),
-                                            hasMore = true,
-                                            nextPageIndex = currentApiPage + 1
-                                        )
+                                    val paginatedResult = PaginatedDiscoveryRepositories(
+                                        repos = newItems.toList(),
+                                        hasMore = true,
+                                        nextPageIndex = currentApiPage + 1
                                     )
+                                    emit(paginatedResult)
                                     logger.debug("Emitted ${newItems.size} repos (total: ${results.size})")
                                     lastEmittedCount = results.size
                                 }
@@ -290,13 +317,12 @@ class HomeRepositoryImpl(
         if (results.size > lastEmittedCount) {
             val finalBatch = results.subList(lastEmittedCount, results.size)
             val finalHasMore = pagesFetchedCount < maxPagesToFetch && results.size >= desiredCount
-            emit(
-                PaginatedDiscoveryRepositories(
-                    repos = finalBatch.toList(),
-                    hasMore = finalHasMore,
-                    nextPageIndex = if (finalHasMore) currentApiPage + 1 else currentApiPage
-                )
+            val finalResult = PaginatedDiscoveryRepositories(
+                repos = finalBatch.toList(),
+                hasMore = finalHasMore,
+                nextPageIndex = if (finalHasMore) currentApiPage + 1 else currentApiPage
             )
+            emit(finalResult)
             logger.debug("Final emit: ${finalBatch.size} repos (total: ${results.size})")
         } else if (results.isEmpty()) {
             emit(
@@ -307,6 +333,16 @@ class HomeRepositoryImpl(
                 )
             )
             logger.debug("No results found")
+        }
+
+        if (results.isNotEmpty()) {
+            val allResults = PaginatedDiscoveryRepositories(
+                repos = results.toList(),
+                hasMore = pagesFetchedCount < maxPagesToFetch && results.size >= desiredCount,
+                nextPageIndex = currentApiPage + 1
+            )
+            cacheManager.put(cacheKey(category, startPage), allResults, CacheTtl.HOME_REPOS)
+            logger.debug("Cached ${results.size} repos for $category page $startPage")
         }
     }.flowOn(Dispatchers.IO)
 

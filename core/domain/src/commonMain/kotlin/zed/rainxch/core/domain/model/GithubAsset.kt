@@ -1,5 +1,8 @@
 package zed.rainxch.core.domain.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class GithubAsset(
     val id: Long,
     val name: String,

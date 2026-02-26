@@ -1,5 +1,8 @@
 package zed.rainxch.core.domain.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class GithubRelease(
     val id: Long,
     val tagName: String,

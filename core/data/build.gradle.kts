@@ -19,6 +19,8 @@ kotlin {
 
                 implementation(libs.datastore)
                 implementation(libs.datastore.preferences)
+
+                implementation(libs.kotlinx.datetime)
             }
         }
 

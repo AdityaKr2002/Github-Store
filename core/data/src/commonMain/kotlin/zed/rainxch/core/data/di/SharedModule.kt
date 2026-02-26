@@ -8,9 +8,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.koin.dsl.module
+import zed.rainxch.core.data.cache.CacheManager
 import zed.rainxch.core.data.data_source.TokenStore
 import zed.rainxch.core.data.data_source.impl.DefaultTokenStore
 import zed.rainxch.core.data.local.db.AppDatabase
+import zed.rainxch.core.data.local.db.dao.CacheDao
 import zed.rainxch.core.data.local.db.dao.FavoriteRepoDao
 import zed.rainxch.core.data.local.db.dao.InstalledAppDao
 import zed.rainxch.core.data.local.db.dao.StarredRepoDao
@@ -104,6 +106,10 @@ val coreModule = module {
             logger = get()
         )
     }
+
+    single<CacheManager> {
+        CacheManager(cacheDao = get())
+    }
 }
 
 val networkModule = module {
@@ -174,5 +180,9 @@ val databaseModule = module {
 
     single<UpdateHistoryDao> {
         get<AppDatabase>().updateHistoryDao
+    }
+
+    single<CacheDao> {
+        get<AppDatabase>().cacheDao
     }
 }

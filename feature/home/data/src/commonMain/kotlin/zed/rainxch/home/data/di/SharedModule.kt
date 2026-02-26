@@ -13,6 +13,7 @@ val homeModule = module {
             httpClient = get(),
             platform = get(),
             logger = get(),
+            cacheManager = get()
         )
     }
 
