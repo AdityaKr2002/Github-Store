@@ -5,6 +5,7 @@ import android.os.Build
 import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
 import zed.rainxch.core.data.services.PackageEventReceiver
+import zed.rainxch.core.data.services.UpdateScheduler
 import zed.rainxch.core.domain.repository.InstalledAppsRepository
 import zed.rainxch.core.domain.system.PackageMonitor
 import zed.rainxch.githubstore.app.di.initKoin
@@ -21,6 +22,7 @@ class GithubStoreApp : Application() {
         }
 
         registerPackageEventReceiver()
+        scheduleBackgroundUpdateChecks()
     }
 
     private fun registerPackageEventReceiver() {
@@ -37,5 +39,9 @@ class GithubStoreApp : Application() {
         }
 
         packageEventReceiver = receiver
+    }
+
+    private fun scheduleBackgroundUpdateChecks() {
+        UpdateScheduler.schedule(context = this)
     }
 }

@@ -382,4 +382,10 @@
     <string name="last_checked_minutes_ago">%1$d min ago</string>
     <string name="last_checked_hours_ago">%1$d h ago</string>
     <string name="checking_for_updates">Checking for updates…</string>
+
+    <!-- Track app feature -->
+    <string name="track_this_app">Track this app</string>
+    <string name="app_tracked_successfully">App added to tracking list</string>
+    <string name="failed_to_track_app">Failed to track app: %1$s</string>
+    <string name="already_tracked">App is already being tracked</string>
 </resources>

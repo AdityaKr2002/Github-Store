@@ -54,6 +54,7 @@ markdownRenderer = "0.39.1"
 liquid = "1.1.1"
 landscapist = "2.9.1"
 jsystemthemedetector = "3.9.1"
+work = "2.10.1"
 
 projectApplicationId = "zed.rainxch.githubstore"
 projectVersionName = "1.6.0"
@@ -177,6 +178,9 @@ jetbrains-bundle = { module = "org.jetbrains.androidx.core:core-bundle", version
 # Markdown
 markdown-renderer = { module = "com.mikepenz:multiplatform-markdown-renderer-m3", version.ref = "markdownRenderer" }
 markdown-renderer-coil3 = { module = "com.mikepenz:multiplatform-markdown-renderer-coil3", version.ref = "markdownRenderer" }
+
+# WorkManager
+androidx-work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
 
 # Liquid effect
 liquid = { module = "io.github.fletchmckee.liquid:liquid", version.ref = "liquid" }
