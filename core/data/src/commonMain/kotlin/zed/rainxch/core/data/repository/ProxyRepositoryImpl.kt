@@ -25,25 +25,41 @@ class ProxyRepositoryImpl(
         return preferences.data.map { prefs ->
             when (prefs[proxyTypeKey]) {
                 "system" -> ProxyConfig.System
-                "http" -> ProxyConfig.Http(
-                    host = prefs[proxyHostKey] ?: "",
-                    port = prefs[proxyPortKey] ?: 8080,
-                    username = prefs[proxyUsernameKey],
-                    password = prefs[proxyPasswordKey]
-                )
-                "socks" -> ProxyConfig.Socks(
-                    host = prefs[proxyHostKey] ?: "",
-                    port = prefs[proxyPortKey] ?: 1080,
-                    username = prefs[proxyUsernameKey],
-                    password = prefs[proxyPasswordKey]
-                )
+                "http" -> {
+                    val host = prefs[proxyHostKey]?.takeIf { it.isNotBlank() }
+                    val port = prefs[proxyPortKey]?.takeIf { it in 1..65535 }
+                    if (host != null && port != null) {
+                        ProxyConfig.Http(
+                            host = host,
+                            port = port,
+                            username = prefs[proxyUsernameKey],
+                            password = prefs[proxyPasswordKey]
+                        )
+                    } else {
+                        ProxyConfig.None
+                    }
+                }
+                "socks" -> {
+                    val host = prefs[proxyHostKey]?.takeIf { it.isNotBlank() }
+                    val port = prefs[proxyPortKey]?.takeIf { it in 1..65535 }
+                    if (host != null && port != null) {
+                        ProxyConfig.Socks(
+                            host = host,
+                            port = port,
+                            username = prefs[proxyUsernameKey],
+                            password = prefs[proxyPasswordKey]
+                        )
+                    } else {
+                        ProxyConfig.None
+                    }
+                }
                 else -> ProxyConfig.None
             }
         }
     }
 
     override suspend fun setProxyConfig(config: ProxyConfig) {
-        applyToProxyManager(config)
+        // Persist first so config survives crashes, then apply in-memory
         preferences.edit { prefs ->
             when (config) {
                 is ProxyConfig.None -> {
@@ -92,6 +108,7 @@ class ProxyRepositoryImpl(
                 }
             }
         }
+        applyToProxyManager(config)
     }
 
     private fun applyToProxyManager(config: ProxyConfig) {

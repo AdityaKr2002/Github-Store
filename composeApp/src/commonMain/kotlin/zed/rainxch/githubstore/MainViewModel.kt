@@ -7,12 +7,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.first
-import zed.rainxch.core.data.network.ProxyManager
-import zed.rainxch.core.domain.model.ProxyConfig
 import zed.rainxch.core.domain.repository.AuthenticationState
 import zed.rainxch.core.domain.repository.InstalledAppsRepository
-import zed.rainxch.core.domain.repository.ProxyRepository
 import zed.rainxch.core.domain.repository.RateLimitRepository
 import zed.rainxch.core.domain.repository.ThemesRepository
 import zed.rainxch.core.domain.use_cases.SyncInstalledAppsUseCase
@@ -22,8 +18,7 @@ class MainViewModel(
     private val installedAppsRepository: InstalledAppsRepository,
     private val authenticationState: AuthenticationState,
     private val rateLimitRepository: RateLimitRepository,
-    private val syncUseCase: SyncInstalledAppsUseCase,
-    private val proxyRepository: ProxyRepository
+    private val syncUseCase: SyncInstalledAppsUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MainState())
@@ -97,26 +92,6 @@ class MainViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             syncUseCase().onSuccess {
                 installedAppsRepository.checkAllForUpdates()
-            }
-        }
-
-        viewModelScope.launch(Dispatchers.IO) {
-            val savedConfig = proxyRepository.getProxyConfig().first()
-            when (savedConfig) {
-                is ProxyConfig.None -> ProxyManager.setNoProxy()
-                is ProxyConfig.System -> ProxyManager.setSystemProxy()
-                is ProxyConfig.Http -> ProxyManager.setHttpProxy(
-                    host = savedConfig.host,
-                    port = savedConfig.port,
-                    username = savedConfig.username,
-                    password = savedConfig.password
-                )
-                is ProxyConfig.Socks -> ProxyManager.setSocksProxy(
-                    host = savedConfig.host,
-                    port = savedConfig.port,
-                    username = savedConfig.username,
-                    password = savedConfig.password
-                )
             }
         }
     }

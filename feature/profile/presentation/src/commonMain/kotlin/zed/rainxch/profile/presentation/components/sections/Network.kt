@@ -20,14 +20,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,6 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import zed.rainxch.githubstore.core.presentation.res.*
@@ -62,6 +66,24 @@ fun LazyListScope.networkSection(
             }
         )
 
+        // Description text for None / System proxy types
+        AnimatedVisibility(
+            visible = state.proxyType == ProxyType.NONE || state.proxyType == ProxyType.SYSTEM,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            Text(
+                text = when (state.proxyType) {
+                    ProxyType.SYSTEM -> stringResource(Res.string.proxy_system_description)
+                    else -> stringResource(Res.string.proxy_none_description)
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 8.dp, top = 12.dp)
+            )
+        }
+
+        // Details card for HTTP / SOCKS proxy types
         AnimatedVisibility(
             visible = state.proxyType == ProxyType.HTTP || state.proxyType == ProxyType.SOCKS,
             enter = expandVertically() + fadeIn(),
@@ -166,6 +188,13 @@ private fun ProxyDetailsCard(
     state: ProfileState,
     onAction: (ProfileAction) -> Unit
 ) {
+    val portValue = state.proxyPort
+    val isPortInvalid = portValue.isNotEmpty() &&
+            (portValue.toIntOrNull()?.let { it !in 1..65535 } ?: true)
+    val isFormValid = state.proxyHost.isNotBlank() &&
+            portValue.isNotEmpty() &&
+            portValue.toIntOrNull()?.let { it in 1..65535 } == true
+
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.elevatedCardColors(
@@ -177,6 +206,7 @@ private fun ProxyDetailsCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // Host + Port row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -185,6 +215,7 @@ private fun ProxyDetailsCard(
                     value = state.proxyHost,
                     onValueChange = { onAction(ProfileAction.OnProxyHostChanged(it)) },
                     label = { Text(stringResource(Res.string.proxy_host)) },
+                    placeholder = { Text("127.0.0.1") },
                     singleLine = true,
                     modifier = Modifier.weight(2f),
                     shape = RoundedCornerShape(12.dp)
@@ -194,13 +225,19 @@ private fun ProxyDetailsCard(
                     value = state.proxyPort,
                     onValueChange = { onAction(ProfileAction.OnProxyPortChanged(it)) },
                     label = { Text(stringResource(Res.string.proxy_port)) },
+                    placeholder = { Text("1080") },
                     singleLine = true,
+                    isError = isPortInvalid,
+                    supportingText = if (isPortInvalid) {
+                        { Text(stringResource(Res.string.proxy_port_error)) }
+                    } else null,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp)
                 )
             }
 
+            // Username
             OutlinedTextField(
                 value = state.proxyUsername,
                 onValueChange = { onAction(ProfileAction.OnProxyUsernameChanged(it)) },
@@ -210,28 +247,49 @@ private fun ProxyDetailsCard(
                 shape = RoundedCornerShape(12.dp)
             )
 
+            // Password with visibility toggle
             OutlinedTextField(
                 value = state.proxyPassword,
                 onValueChange = { onAction(ProfileAction.OnProxyPasswordChanged(it)) },
                 label = { Text(stringResource(Res.string.proxy_password)) },
                 singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = if (state.isProxyPasswordVisible) {
+                    VisualTransformation.None
+                } else {
+                    PasswordVisualTransformation()
+                },
+                trailingIcon = {
+                    IconButton(
+                        onClick = { onAction(ProfileAction.OnProxyPasswordVisibilityToggle) }
+                    ) {
+                        Icon(
+                            imageVector = if (state.isProxyPasswordVisible) {
+                                Icons.Default.VisibilityOff
+                            } else {
+                                Icons.Default.Visibility
+                            },
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             )
 
-            TextButton(
+            // Save button
+            FilledTonalButton(
                 onClick = { onAction(ProfileAction.OnProxySave) },
-                modifier = Modifier.align(Alignment.End),
-                enabled = state.proxyHost.isNotBlank() && state.proxyPort.toIntOrNull() != null
+                enabled = isFormValid,
+                modifier = Modifier.align(Alignment.End)
             ) {
                 Icon(
                     imageVector = Icons.Default.Save,
                     contentDescription = null,
                     modifier = Modifier.size(18.dp)
                 )
-                Spacer(Modifier.size(6.dp))
+                Spacer(Modifier.size(8.dp))
                 Text(stringResource(Res.string.proxy_save))
             }
         }

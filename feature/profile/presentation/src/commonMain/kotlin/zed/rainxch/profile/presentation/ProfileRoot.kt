@@ -74,6 +74,12 @@ fun ProfileRoot(
                     snackbarState.showSnackbar(getString(Res.string.proxy_saved))
                 }
             }
+
+            is ProfileEvent.OnProxySaveError -> {
+                coroutineScope.launch {
+                    snackbarState.showSnackbar(event.message)
+                }
+            }
         }
     }
 

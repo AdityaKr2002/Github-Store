@@ -229,10 +229,16 @@ class ProfileViewModel(
                 _state.update { it.copy(proxyPassword = action.password) }
             }
 
+            ProfileAction.OnProxyPasswordVisibilityToggle -> {
+                _state.update { it.copy(isProxyPasswordVisible = !it.isProxyPasswordVisible) }
+            }
+
             ProfileAction.OnProxySave -> {
                 val currentState = _state.value
-                val port = currentState.proxyPort.toIntOrNull() ?: return
-                val host = currentState.proxyHost.takeIf { it.isNotBlank() } ?: return
+                val port = currentState.proxyPort.toIntOrNull()
+                    ?.takeIf { it in 1..65535 }
+                    ?: return
+                val host = currentState.proxyHost.trim().takeIf { it.isNotBlank() } ?: return
                 val username = currentState.proxyUsername.takeIf { it.isNotBlank() }
                 val password = currentState.proxyPassword.takeIf { it.isNotBlank() }
 
@@ -244,8 +250,17 @@ class ProfileViewModel(
                 }
 
                 viewModelScope.launch {
-                    proxyRepository.setProxyConfig(config)
-                    _events.send(ProfileEvent.OnProxySaved)
+                    runCatching {
+                        proxyRepository.setProxyConfig(config)
+                    }.onSuccess {
+                        _events.send(ProfileEvent.OnProxySaved)
+                    }.onFailure { error ->
+                        _events.send(
+                            ProfileEvent.OnProxySaveError(
+                                error.message ?: "Failed to save proxy settings"
+                            )
+                        )
+                    }
                 }
             }
         }
