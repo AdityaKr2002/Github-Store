@@ -12,12 +12,6 @@ import kotlinx.coroutines.launch
 import zed.rainxch.core.domain.repository.InstalledAppsRepository
 import zed.rainxch.core.domain.system.PackageMonitor
 
-/**
- * Listens to system package install/uninstall/replace broadcasts.
- * When a tracked package is installed or updated, it resolves the pending
- * install flag and updates version info from the system PackageManager.
- * When a tracked package is removed, it deletes the record from the database.
- */
 class PackageEventReceiver(
     private val installedAppsRepository: InstalledAppsRepository,
     private val packageMonitor: PackageMonitor
@@ -49,17 +43,37 @@ class PackageEventReceiver(
             if (app.isPendingInstall) {
                 val systemInfo = packageMonitor.getInstalledPackageInfo(packageName)
                 if (systemInfo != null) {
-                    installedAppsRepository.updateApp(
-                        app.copy(
-                            isPendingInstall = false,
-                            isUpdateAvailable = false,
-                            installedVersionName = systemInfo.versionName,
-                            installedVersionCode = systemInfo.versionCode,
-                            latestVersionName = systemInfo.versionName,
-                            latestVersionCode = systemInfo.versionCode
+                    val expectedVersionCode = app.latestVersionCode ?: 0L
+                    val wasActuallyUpdated = expectedVersionCode > 0L &&
+                            systemInfo.versionCode >= expectedVersionCode
+
+                    if (wasActuallyUpdated) {
+                        installedAppsRepository.updateAppVersion(
+                            packageName = packageName,
+                            newTag = app.latestVersion ?: systemInfo.versionName,
+                            newAssetName = app.latestAssetName ?: "",
+                            newAssetUrl = app.latestAssetUrl ?: "",
+                            newVersionName = systemInfo.versionName,
+                            newVersionCode = systemInfo.versionCode
                         )
-                    )
-                    Logger.i { "Resolved pending install via broadcast: $packageName (v${systemInfo.versionName})" }
+                        installedAppsRepository.updatePendingStatus(packageName, false)
+                        Logger.i { "Update confirmed via broadcast: $packageName (v${systemInfo.versionName})" }
+                    } else {
+                        installedAppsRepository.updateApp(
+                            app.copy(
+                                isPendingInstall = false,
+                                installedVersionName = systemInfo.versionName,
+                                installedVersionCode = systemInfo.versionCode,
+                                isUpdateAvailable = (app.latestVersionCode
+                                    ?: 0L) > systemInfo.versionCode
+                            )
+                        )
+                        Logger.i {
+                            "Package replaced but not updated to target: $packageName " +
+                                    "(system: v${systemInfo.versionName}/${systemInfo.versionCode}, " +
+                                    "target: v${app.latestVersionName}/${app.latestVersionCode})"
+                        }
+                    }
                 } else {
                     installedAppsRepository.updatePendingStatus(packageName, false)
                     Logger.i { "Resolved pending install via broadcast (no system info): $packageName" }
@@ -83,7 +97,6 @@ class PackageEventReceiver(
 
     private suspend fun onPackageRemoved(packageName: String) {
         try {
-            val app = installedAppsRepository.getAppByPackage(packageName) ?: return
             installedAppsRepository.deleteInstalledApp(packageName)
             Logger.i { "Removed uninstalled app via broadcast: $packageName" }
         } catch (e: Exception) {

@@ -1,6 +1,5 @@
 package zed.rainxch.apps.presentation
 
-import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import zed.rainxch.githubstore.core.presentation.res.*
@@ -356,7 +355,23 @@ class AppsViewModel(
                 val apkInfo = installer.getApkInfoExtractor().extractPackageInfo(filePath)
                     ?: throw IllegalStateException("Failed to extract APK info")
 
-                markPendingUpdate(app)
+                // Save latest release metadata and mark as pending install
+                // so PackageEventReceiver can verify the actual installation
+                val currentApp = installedAppsRepository.getAppByPackage(app.packageName)
+                if (currentApp != null) {
+                    installedAppsRepository.updateApp(
+                        currentApp.copy(
+                            isPendingInstall = true,
+                            latestVersion = latestVersion,
+                            latestAssetName = latestAssetName,
+                            latestAssetUrl = latestAssetUrl,
+                            latestVersionName = apkInfo.versionName,
+                            latestVersionCode = apkInfo.versionCode
+                        )
+                    )
+                } else {
+                    markPendingUpdate(app)
+                }
 
                 updateAppState(app.packageName, UpdateState.Installing)
 
@@ -367,20 +382,12 @@ class AppsViewModel(
                     throw e
                 }
 
-                installedAppsRepository.updateAppVersion(
-                    packageName = app.packageName,
-                    newTag = latestVersion,
-                    newAssetName = latestAssetName,
-                    newAssetUrl = latestAssetUrl,
-                    newVersionName = apkInfo.versionName,
-                    newVersionCode = apkInfo.versionCode
-                )
-
-                updateAppState(app.packageName, UpdateState.Success)
-                delay(2000)
+                // Don't mark as updated here — installer.install() just launches the
+                // system install dialog and returns immediately. PackageEventReceiver
+                // will handle confirming the actual installation via broadcast.
                 updateAppState(app.packageName, UpdateState.Idle)
 
-                logger.debug("Successfully updated ${app.appName} to ${latestVersion}")
+                logger.debug("Launched installer for ${app.appName} ${latestVersion}, waiting for system confirmation")
 
             } catch (e: CancellationException) {
                 logger.debug("Update cancelled for ${app.packageName}")

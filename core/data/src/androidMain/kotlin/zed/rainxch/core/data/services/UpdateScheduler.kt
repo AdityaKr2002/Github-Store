@@ -10,20 +10,10 @@ import androidx.work.WorkManager
 import co.touchlab.kermit.Logger
 import java.util.concurrent.TimeUnit
 
-/**
- * Manages scheduling and cancellation of periodic update checks using WorkManager.
- *
- * Default schedule: every 6 hours with network connectivity constraint.
- * Uses exponential backoff for retries with a 30-minute initial delay.
- */
 object UpdateScheduler {
 
     private const val DEFAULT_INTERVAL_HOURS = 6L
 
-    /**
-     * Schedules periodic update checks. Safe to call multiple times —
-     * existing work is kept unless [replace] is true.
-     */
     fun schedule(
         context: Context,
         intervalHours: Long = DEFAULT_INTERVAL_HOURS,
@@ -34,7 +24,8 @@ object UpdateScheduler {
             .build()
 
         val request = PeriodicWorkRequestBuilder<UpdateCheckWorker>(
-            intervalHours, TimeUnit.HOURS
+            repeatInterval = intervalHours,
+            repeatIntervalTimeUnit = TimeUnit.HOURS
         )
             .setConstraints(constraints)
             .setBackoffCriteria(
@@ -51,17 +42,14 @@ object UpdateScheduler {
 
         WorkManager.getInstance(context)
             .enqueueUniquePeriodicWork(
-                UpdateCheckWorker.WORK_NAME,
-                policy,
-                request
+                uniqueWorkName = UpdateCheckWorker.WORK_NAME,
+                existingPeriodicWorkPolicy = policy,
+                request = request
             )
 
         Logger.i { "UpdateScheduler: Scheduled periodic update check every ${intervalHours}h (policy=$policy)" }
     }
 
-    /**
-     * Cancels the scheduled periodic update checks.
-     */
     fun cancel(context: Context) {
         WorkManager.getInstance(context)
             .cancelUniqueWork(UpdateCheckWorker.WORK_NAME)
