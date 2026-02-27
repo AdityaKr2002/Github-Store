@@ -435,12 +435,10 @@ class DetailsViewModel(
                         if (isDowngrade) {
                             viewModelScope.launch {
                                 _events.send(
-                                    DetailsEvent.OnMessage(
-                                        getString(
-                                            Res.string.downgrade_warning_message,
-                                            release.tagName,
-                                            installedApp.installedVersion
-                                        )
+                                    DetailsEvent.ShowDowngradeWarning(
+                                        packageName = installedApp.packageName,
+                                        currentVersion = installedApp.installedVersion,
+                                        targetVersion = release.tagName
                                     )
                                 )
                             }
@@ -455,6 +453,24 @@ class DetailsViewModel(
                         releaseTag = release.tagName
                     )
                 }
+            }
+
+            DetailsAction.UninstallApp -> {
+                val installedApp = _state.value.installedApp ?: return
+                logger.debug("Uninstalling app: ${installedApp.packageName}")
+                viewModelScope.launch {
+                    try {
+                        installer.uninstall(installedApp.packageName)
+                    } catch (e: Exception) {
+                        logger.error("Failed to request uninstall for ${installedApp.packageName}: ${e.message}")
+                        _events.send(
+                            DetailsEvent.OnMessage(
+                                getString(Res.string.failed_to_uninstall, installedApp.packageName)
+                            )
+                        )
+                    }
+                }
+
             }
 
             is DetailsAction.DownloadAsset -> {
@@ -761,6 +777,8 @@ class DetailsViewModel(
             }
 
             DetailsAction.TrackExistingApp -> {
+                val snapshot = _state.value
+                if (snapshot.isTrackingApp || !snapshot.isTrackable) return
                 trackExistingApp()
             }
 

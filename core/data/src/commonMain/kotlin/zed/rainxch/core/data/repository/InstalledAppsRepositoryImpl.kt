@@ -124,14 +124,7 @@ class InstalledAppsRepositoryImpl(
                 }
                 val primaryAsset = installer.choosePrimaryAsset(installableAssets)
 
-                // Use versionCode comparison when available (more reliable for rooted/downgraded devices)
-                // Fall back to tag string comparison when versionCode is not available
-                val isUpdateAvailable = if (app.installedVersionCode > 0L) {
-                    // Compare tags first — if same tag, no update regardless of versionCode
-                    normalizedInstalledTag != normalizedLatestTag
-                } else {
-                    normalizedInstalledTag != normalizedLatestTag
-                }
+                val isUpdateAvailable = normalizedInstalledTag != normalizedLatestTag
 
                 Logger.d {
                     "Update check for ${app.appName}: " +

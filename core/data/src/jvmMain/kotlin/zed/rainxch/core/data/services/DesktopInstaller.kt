@@ -322,6 +322,11 @@ class DesktopInstaller(
         }
     }
 
+    override fun uninstall(packageName: String) {
+        // Desktop doesn't have a unified uninstall mechanism
+        Logger.d { "Uninstall not supported on desktop for: $packageName" }
+    }
+
     override suspend fun install(filePath: String, extOrMime: String) =
         withContext(Dispatchers.IO) {
             val file = File(filePath)

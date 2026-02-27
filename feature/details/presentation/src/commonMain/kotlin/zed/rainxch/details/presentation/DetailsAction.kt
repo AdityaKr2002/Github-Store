@@ -7,6 +7,7 @@ import zed.rainxch.details.domain.model.ReleaseCategory
 sealed interface DetailsAction {
     data object Retry : DetailsAction
     data object InstallPrimary : DetailsAction
+    data object UninstallApp : DetailsAction
     data class DownloadAsset(
         val downloadUrl: String,
         val assetName: String,

@@ -9,6 +9,7 @@ interface Installer {
     suspend fun ensurePermissionsOrThrow(extOrMime: String)
 
     suspend fun install(filePath: String, extOrMime: String)
+    fun uninstall(packageName: String)
 
     fun isAssetInstallable(assetName: String): Boolean
     fun choosePrimaryAsset(assets: List<GithubAsset>): GithubAsset?
