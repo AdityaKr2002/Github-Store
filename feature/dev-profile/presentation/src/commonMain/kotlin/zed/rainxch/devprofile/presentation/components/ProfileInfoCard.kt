@@ -41,9 +41,7 @@ fun ProfileInfoCard(
     profile: DeveloperProfile,
     onAction: (DeveloperProfileAction) -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    ExpressiveCard {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

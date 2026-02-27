@@ -2,6 +2,7 @@
 
 package zed.rainxch.devprofile.presentation.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,9 +26,11 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,13 +56,13 @@ fun DeveloperRepoItem(
     onToggleFavorite: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    ExpressiveCard(
         modifier = modifier.fillMaxWidth(),
-        onClick = onItemClick
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .clickable(onClick = onItemClick)
                 .padding(16.dp)
         ) {
             Row(
@@ -93,7 +96,8 @@ fun DeveloperRepoItem(
                 FilledIconToggleButton(
                     checked = repository.isFavorite,
                     onCheckedChange = { onToggleFavorite() },
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(40.dp),
+                    shape = MaterialShapes.Cookie6Sided.toShape(),
                 ) {
                     Icon(
                         imageVector = if (repository.isFavorite) {

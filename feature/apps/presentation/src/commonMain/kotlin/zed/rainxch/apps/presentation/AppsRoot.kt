@@ -377,8 +377,9 @@ fun AppItemCard(
     ExpressiveCard {
         Column(
             modifier = modifier
-                .padding(16.dp)
+                .clip(RoundedCornerShape(32.dp))
                 .clickable { onRepoClick() }
+                .padding(16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

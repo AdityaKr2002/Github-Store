@@ -52,7 +52,7 @@ private fun StatCard(
     value: String,
     modifier: Modifier = Modifier
 ) {
-    Card(modifier = modifier) {
+    ExpressiveCard(modifier = modifier) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
