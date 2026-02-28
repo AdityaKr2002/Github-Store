@@ -11,6 +11,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import zed.rainxch.core.data.data_source.TokenStore
 import zed.rainxch.core.data.dto.GithubDeviceTokenSuccessDto
+import kotlin.time.Clock
 
 class DefaultTokenStore(
     private val dataStore: DataStore<Preferences>,
@@ -20,7 +21,7 @@ class DefaultTokenStore(
 
     override suspend fun save(token: GithubDeviceTokenSuccessDto) {
         val stamped = token.copy(
-            savedAtEpochMillis = token.savedAtEpochMillis ?: System.currentTimeMillis()
+            savedAtEpochMillis = token.savedAtEpochMillis ?: Clock.System.now().toEpochMilliseconds()
         )
         val jsonString = json.encodeToString(GithubDeviceTokenSuccessDto.serializer(), stamped)
         dataStore.edit { preferences ->
@@ -62,6 +63,6 @@ class DefaultTokenStore(
         val savedAt = token.savedAtEpochMillis ?: return false
         val expiresIn = token.expiresIn ?: return false
         val expiresAtMillis = savedAt + (expiresIn * 1000L)
-        return System.currentTimeMillis() > expiresAtMillis
+        return Clock.System.now().toEpochMilliseconds() > expiresAtMillis
     }
 }

@@ -220,16 +220,20 @@ class AuthenticationViewModel(
                 )
 
                 _state.update {
+                    val currentRemaining = (it.loginState as? AuthLoginState.DevicePrompt)?.remainingSeconds ?: 0
+
                     it.copy(
-                        loginState = AuthLoginState.DevicePrompt(start),
+                        loginState = AuthLoginState.DevicePrompt(start, currentRemaining),
                         copied = true
                     )
                 }
             } catch (e: Exception) {
                 logger.debug("⚠️ Failed to copy to clipboard: ${e.message}")
                 _state.update {
+                    val currentRemaining = (it.loginState as? AuthLoginState.DevicePrompt)?.remainingSeconds ?: 0
+
                     it.copy(
-                        loginState = AuthLoginState.DevicePrompt(start),
+                        loginState = AuthLoginState.DevicePrompt(start, currentRemaining),
                         copied = false
                     )
                 }

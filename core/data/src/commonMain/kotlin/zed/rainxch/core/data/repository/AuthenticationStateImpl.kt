@@ -5,15 +5,19 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import zed.rainxch.core.data.data_source.TokenStore
 import zed.rainxch.core.domain.repository.AuthenticationState
 
-class AuthenticationStateImpl (
+class AuthenticationStateImpl(
     private val tokenStore: TokenStore,
 ) : AuthenticationState {
 
     private val _sessionExpiredEvent = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     override val sessionExpiredEvent: SharedFlow<Unit> = _sessionExpiredEvent.asSharedFlow()
+
+    private val sessionExpiredMutex = Mutex()
 
     override fun isUserLoggedIn(): Flow<Boolean> {
         return tokenStore
@@ -28,7 +32,10 @@ class AuthenticationStateImpl (
     }
 
     override suspend fun notifySessionExpired() {
-        tokenStore.clear()
-        _sessionExpiredEvent.emit(Unit)
+        sessionExpiredMutex.withLock {
+            if (tokenStore.currentToken() == null) return@withLock
+            tokenStore.clear()
+            _sessionExpiredEvent.emit(Unit)
+        }
     }
 }
