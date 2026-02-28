@@ -1,10 +1,9 @@
 [versions]
-agp = "8.13.1"
+agp = "8.13.2"
 composeBom = "2025.07.00"
 kermit = "2.0.8"
 kotlin = "2.3.10"
 ksp = "2.3.5"
-google-services = "4.4.3"
 
 androidDesugarJdkLibs = "2.1.5"
 androidTools = "32.0.1"
@@ -12,21 +11,13 @@ androidTools = "32.0.1"
 # Compose
 compose-hot-reload = "1.0.0"
 compose-multiplatform = "1.10.1"
-# Maintain compose multiplatform version aligned with navigation, cache error could happen
-compose-lifecycle = "2.9.1"
-navigation-compose = "2.9.1"
+compose-lifecycle = "2.9.6"
+navigation-compose = "2.9.2"
 jetbrains-core-bundle = "1.0.1"
 material-icons = "1.7.3"
-compose-gradle-plugin = "1.10.0"
 
 # AndroidX
 androidx-activity = "1.12.4"
-androidx-core = "1.17.0"
-androidx-lifecycle = "2.9.0"
-androidx-test-ext = "1.2.1"
-androidx-runner = "1.6.2"
-androidx-test-core = "1.7.0"
-appcompatVersion = "1.7.1"
 core-splashscreen = "1.2.0"
 
 # Kotlinx
@@ -41,13 +32,9 @@ ktor = "3.4.0"
 room = "2.8.4"
 sqlite = "2.6.2"
 datastore = "1.2.0"
-firebase-bom = "34.0.0"
-adaptive = "1.2.0-alpha04"
-compose-jetbrains = "1.8.2"
-compose-jetbrains-material-you = "1.9.0-alpha04"
+compose-jetbrains = "1.10.1"
+compose-jetbrains-material-you = "1.11.0-alpha03"
 jetbrains-savedstate = "1.4.0"
-coil = "3.3.0"
-coil-network = "3.3.0"
 moko = "0.20.1"
 buildkonfig = "0.17.1"
 markdownRenderer = "0.39.2"
@@ -67,15 +54,10 @@ projectVersionCode = "11"
 [libraries]
 # Kotlin
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
-androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "compose-lifecycle" }
-androidx-material3 = { module = "androidx.compose.material3:material3" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 
 # AndroidX Core
-androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
-androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompatVersion" }
-androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "androidx-activity" }
 jetbrains-compose-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "compose-lifecycle" }
 koin-core-viewmodel = { group = "io.insert-koin", name = "koin-core-viewmodel", version.ref = "koin" }
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
@@ -113,11 +95,6 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 
-# Material3 Adaptive
-material3-adaptive = { module = "org.jetbrains.compose.material3.adaptive:adaptive", version.ref = "adaptive" }
-material3-adaptive-layout = { module = "org.jetbrains.compose.material3.adaptive:adaptive-layout", version.ref = "adaptive" }
-material3-adaptive-navigation = { module = "org.jetbrains.compose.material3.adaptive:adaptive-navigation", version.ref = "adaptive" }
-
 # Room
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
@@ -144,7 +121,6 @@ buildkonfig-compiler = { group = "com.codingfeline.buildkonfig", name = "buildko
 
 touchlab-kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 
-androidx-compose-resources = { group = "org.jetbrains.compose.components", name = "components-resources", version.ref="resources" }
 androidx-compose-ui-tooling-preview = { group = "org.jetbrains.compose.ui", name = "ui-tooling-preview", version.ref="resources" }
 androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 
