@@ -1,6 +1,7 @@
 package zed.rainxch.home.presentation
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,6 +39,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -352,7 +354,9 @@ private fun TopAppBar() {
                 contentDescription = null,
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(CircleShape),
+                    .clip(CircleShape)
+                    .background(Color(0xff121212))
+                    .padding(4.dp),
                 contentScale = ContentScale.Crop
             )
         },
