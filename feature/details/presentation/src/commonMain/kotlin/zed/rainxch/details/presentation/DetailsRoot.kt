@@ -240,12 +240,18 @@ fun DetailsScreen(
                     state.readmeMarkdown?.let {
                         about(
                             readmeMarkdown = state.readmeMarkdown,
-                            readmeLanguage = state.readmeLanguage
+                            readmeLanguage = state.readmeLanguage,
+                            isExpanded = state.isAboutExpanded,
+                            onToggleExpanded = { onAction(DetailsAction.ToggleAboutExpanded) }
                         )
                     }
 
                     state.selectedRelease?.let { release ->
-                        whatsNew(release)
+                        whatsNew(
+                            release = release,
+                            isExpanded = state.isWhatsNewExpanded,
+                            onToggleExpanded = { onAction(DetailsAction.ToggleWhatsNewExpanded) }
+                        )
                     }
 
                     state.userProfile?.let { userProfile ->
