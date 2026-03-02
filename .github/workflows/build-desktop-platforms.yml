@@ -196,30 +196,68 @@ jobs:
           find composeApp/build/compose/binaries/main -maxdepth 4 -type f 2>/dev/null | head -30 || echo "No files found"
         shell: bash
 
-      - name: Package AppImage as tar.gz
+      - name: Build AppImage with appimagetool
         if: matrix.label == 'modern'
         run: |
           set -euo pipefail
 
-          # Find the app-image output directory (could be app-image/ or app/)
-          APPIMAGE_DIR=""
-          for dir in composeApp/build/compose/binaries/main/app-image composeApp/build/compose/binaries/main/app; do
-            if [ -d "$dir" ]; then
-              APPIMAGE_DIR="$dir"
-              echo "Found AppImage output at: $dir"
+          # Find the directory containing the app launcher (bin/GitHub-Store)
+          APP_ROOT=""
+          for candidate in \
+            composeApp/build/compose/binaries/main/app-image/GitHub-Store \
+            composeApp/build/compose/binaries/main/app/GitHub-Store \
+            composeApp/build/compose/binaries/main/app-image \
+            composeApp/build/compose/binaries/main/app; do
+            if [ -f "$candidate/bin/GitHub-Store" ]; then
+              APP_ROOT="$candidate"
+              echo "Found app root at: $candidate"
               break
             fi
           done
 
-          if [ -z "$APPIMAGE_DIR" ]; then
-            echo "ERROR: Could not find AppImage output directory"
-            ls -la composeApp/build/compose/binaries/main/ || true
+          if [ -z "$APP_ROOT" ]; then
+            echo "ERROR: Could not find app launcher (bin/GitHub-Store)"
+            find composeApp/build/compose/binaries/main -type f -name "GitHub-Store" 2>/dev/null || true
             exit 1
           fi
 
-          tar -czf composeApp/build/compose/binaries/main/GitHub-Store-linux-x64.tar.gz -C "$APPIMAGE_DIR" .
-          echo "Created tar.gz archive:"
-          ls -lh composeApp/build/compose/binaries/main/GitHub-Store-linux-x64.tar.gz
+          # Download appimagetool
+          wget -q https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+
+          # Create AppDir from Compose output
+          APPDIR="GitHub-Store.AppDir"
+          mv "$APP_ROOT" "$APPDIR"
+
+          # Create AppRun entry point
+          cat > "$APPDIR/AppRun" << 'EOF'
+          #!/bin/bash
+          SELF=$(readlink -f "$0")
+          HERE=${SELF%/*}
+          exec "${HERE}/bin/GitHub-Store" "$@"
+          EOF
+          chmod +x "$APPDIR/AppRun"
+
+          # Create .desktop file
+          cat > "$APPDIR/github-store.desktop" << 'EOF'
+          [Desktop Entry]
+          Type=Application
+          Name=GitHub Store
+          Exec=GitHub-Store
+          Icon=github-store
+          Categories=Development;
+          Comment=Cross-platform app store for GitHub releases
+          EOF
+
+          # Copy icon to AppDir root (required by appimagetool)
+          cp composeApp/logo/app_icon.png "$APPDIR/github-store.png"
+
+          # Build .AppImage
+          OUTPUT="composeApp/build/compose/binaries/main/GitHub-Store-x86_64.AppImage"
+          ARCH=x86_64 APPIMAGE_EXTRACT_AND_RUN=1 ./appimagetool-x86_64.AppImage "$APPDIR" "$OUTPUT"
+
+          echo "Created AppImage:"
+          ls -lh "$OUTPUT"
         shell: bash
 
       - name: Upload Linux installers
@@ -237,7 +275,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linux-appimage
-          path: composeApp/build/compose/binaries/main/GitHub-Store-linux-x64.tar.gz
+          path: composeApp/build/compose/binaries/main/GitHub-Store-x86_64.AppImage
           if-no-files-found: error
           retention-days: 30
-          compression-level: 6
+          compression-level: 0
