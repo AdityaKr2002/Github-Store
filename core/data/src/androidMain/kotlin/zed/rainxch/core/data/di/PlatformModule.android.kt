@@ -32,8 +32,7 @@ actual val corePlatformModule = module {
 
     single<Downloader> {
         AndroidDownloader(
-            context = get(),
-            files = get()
+            files = get(),
         )
     }
 

@@ -2,14 +2,14 @@ package zed.rainxch.core.data.network
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.ProxyBuilder
-import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.http.Url
 import zed.rainxch.core.domain.model.ProxyConfig
 import java.net.ProxySelector
 import java.net.URI
 
 actual fun createPlatformHttpClient(proxyConfig: ProxyConfig): HttpClient {
-    return HttpClient(CIO) {
+    return HttpClient(OkHttp) {
         engine {
             proxy = when (proxyConfig) {
                 is ProxyConfig.None -> null

@@ -31,7 +31,6 @@ actual val corePlatformModule = module {
     single<Downloader> {
         DesktopDownloader(
             files = get(),
-            http = get()
         )
     }
 

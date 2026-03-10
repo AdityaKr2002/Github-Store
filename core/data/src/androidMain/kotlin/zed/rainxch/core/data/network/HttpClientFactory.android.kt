@@ -6,11 +6,12 @@ import java.net.InetSocketAddress
 import java.net.Proxy
 import okhttp3.Credentials
 import zed.rainxch.core.domain.model.ProxyConfig
+import java.net.Authenticator
 import java.net.PasswordAuthentication
 import java.net.ProxySelector
 
 actual fun createPlatformHttpClient(proxyConfig: ProxyConfig): HttpClient {
-    java.net.Authenticator.setDefault(null)
+    Authenticator.setDefault(null)
 
     return HttpClient(OkHttp) {
         engine {
@@ -54,7 +55,7 @@ actual fun createPlatformHttpClient(proxyConfig: ProxyConfig): HttpClient {
                     )
 
                     if (proxyConfig.username != null) {
-                        java.net.Authenticator.setDefault(object : java.net.Authenticator() {
+                        Authenticator.setDefault(object : Authenticator() {
                             override fun getPasswordAuthentication(): PasswordAuthentication? {
                                 if (requestingHost == proxyConfig.host &&
                                     requestingPort == proxyConfig.port
