@@ -4,7 +4,6 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
-import co.touchlab.kermit.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -105,41 +104,40 @@ class GithubStoreApp : Application() {
                 val versionName = systemInfo?.versionName ?: ""
                 val versionCode = systemInfo?.versionCode ?: 0L
 
-                val selfApp = InstalledApp(
-                    packageName = SELF_PACKAGE_NAME,
-                    repoId = 0L,
-                    repoName = SELF_REPO_NAME,
-                    repoOwner = SELF_REPO_OWNER,
-                    repoOwnerAvatarUrl = "https://avatars.githubusercontent.com/u/221085707",
-                    repoDescription = "A cross-platform app store for GitHub releases",
-                    primaryLanguage = "Kotlin",
-                    repoUrl = "https://github.com/$SELF_REPO_OWNER/$SELF_REPO_NAME",
-                    installedVersion = versionName,
-                    installedAssetName = null,
-                    installedAssetUrl = null,
-                    latestVersion = null,
-                    latestAssetName = null,
-                    latestAssetUrl = null,
-                    latestAssetSize = null,
-                    appName = "GitHub Store",
-                    installSource = InstallSource.THIS_APP,
-                    installedAt = now,
-                    lastCheckedAt = 0L,
-                    lastUpdatedAt = now,
-                    isUpdateAvailable = false,
-                    updateCheckEnabled = true,
-                    releaseNotes = null,
-                    systemArchitecture = "",
-                    fileExtension = "apk",
-                    isPendingInstall = false,
-                    installedVersionName = versionName,
-                    installedVersionCode = versionCode,
-                )
+                val selfApp =
+                    InstalledApp(
+                        packageName = SELF_PACKAGE_NAME,
+                        repoId = 0L,
+                        repoName = SELF_REPO_NAME,
+                        repoOwner = SELF_REPO_OWNER,
+                        repoOwnerAvatarUrl = "https://avatars.githubusercontent.com/u/221085707",
+                        repoDescription = "A cross-platform app store for GitHub releases",
+                        primaryLanguage = "Kotlin",
+                        repoUrl = "https://github.com/$SELF_REPO_OWNER/$SELF_REPO_NAME",
+                        installedVersion = versionName,
+                        installedAssetName = null,
+                        installedAssetUrl = null,
+                        latestVersion = null,
+                        latestAssetName = null,
+                        latestAssetUrl = null,
+                        latestAssetSize = null,
+                        appName = "GitHub Store",
+                        installSource = InstallSource.THIS_APP,
+                        installedAt = now,
+                        lastCheckedAt = 0L,
+                        lastUpdatedAt = now,
+                        isUpdateAvailable = false,
+                        updateCheckEnabled = true,
+                        releaseNotes = null,
+                        systemArchitecture = "",
+                        fileExtension = "apk",
+                        isPendingInstall = false,
+                        installedVersionName = versionName,
+                        installedVersionCode = versionCode,
+                    )
 
                 repo.saveInstalledApp(selfApp)
-                Logger.i { "GithubStoreApp: Registered self as tracked installed app (v$versionName)" }
-            } catch (e: Exception) {
-                Logger.e { "GithubStoreApp: Failed to register self: ${e.message}" }
+            } catch (_: Exception) {
             }
         }
     }
