@@ -2,6 +2,8 @@ package zed.rainxch.home.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -92,13 +94,14 @@ class HomeViewModel(
                 _state.update { current ->
                     current.copy(
                         repos =
-                            current.repos.map { homeRepo ->
-                                val app = installedMap[homeRepo.repository.id]
-                                homeRepo.copy(
-                                    isInstalled = app != null,
-                                    isUpdateAvailable = app?.isUpdateAvailable ?: false,
-                                )
-                            },
+                            current.repos
+                                .map { homeRepo ->
+                                    val app = installedMap[homeRepo.repository.id]
+                                    homeRepo.copy(
+                                        isInstalled = app != null,
+                                        isUpdateAvailable = app?.isUpdateAvailable ?: false,
+                                    )
+                                }.toImmutableList(),
                         isUpdateAvailable = installedMap.any { it.value.isUpdateAvailable },
                     )
                 }
@@ -133,7 +136,7 @@ class HomeViewModel(
                         isLoadingMore = !isInitial,
                         errorMessage = null,
                         currentCategory = targetCategory,
-                        repos = if (isInitial) emptyList() else it.repos,
+                        repos = if (isInitial) persistentListOf() else it.repos,
                     )
                 }
 
@@ -200,7 +203,7 @@ class HomeViewModel(
                             val uniqueList = rawList.distinctBy { it.repository.fullName }
 
                             currentState.copy(
-                                repos = uniqueList,
+                                repos = uniqueList.toImmutableList(),
                                 hasMorePages = paginatedRepos.hasMore,
                                 errorMessage =
                                     if (uniqueList.isEmpty() && !paginatedRepos.hasMore) {
@@ -323,11 +326,12 @@ class HomeViewModel(
                 _state.update { current ->
                     current.copy(
                         repos =
-                            current.repos.map { homeRepo ->
-                                homeRepo.copy(
-                                    isFavourite = favouritesMap.containsKey(homeRepo.repository.id),
-                                )
-                            },
+                            current.repos
+                                .map { homeRepo ->
+                                    homeRepo.copy(
+                                        isFavourite = favouritesMap.containsKey(homeRepo.repository.id),
+                                    )
+                                }.toImmutableList(),
                     )
                 }
             }
@@ -341,11 +345,12 @@ class HomeViewModel(
                 _state.update { current ->
                     current.copy(
                         repos =
-                            current.repos.map { homeRepo ->
-                                homeRepo.copy(
-                                    isStarred = starredReposById.containsKey(homeRepo.repository.id),
-                                )
-                            },
+                            current.repos
+                                .map { homeRepo ->
+                                    homeRepo.copy(
+                                        isStarred = starredReposById.containsKey(homeRepo.repository.id),
+                                    )
+                                }.toImmutableList(),
                     )
                 }
             }
