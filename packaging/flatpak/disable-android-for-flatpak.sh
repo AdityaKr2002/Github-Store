@@ -96,9 +96,12 @@ sed -i \
     -e 's|apply("com.android.library")|// apply("com.android.library")|' \
     "$CONVENTION_DIR/CmpFeatureConventionPlugin.kt" 2>/dev/null || true
 
-# Remove configureKotlinAndroid calls and Android extension blocks
+# Remove configureKotlinAndroid calls and Android extension blocks (only at call sites)
 for f in "$CONVENTION_DIR"/*.kt "$CONVENTION_DIR"/zed/rainxch/githubstore/convention/*.kt; do
     [ -f "$f" ] || continue
+    # Skip files that define these functions (declarations, not call sites)
+    grep -q "fun Project.configureAndroidTarget" "$f" && continue
+    grep -q "fun Project.configureKotlinAndroid" "$f" && continue
     sed -i \
         -e 's|configureAndroidTarget()|// configureAndroidTarget()|g' \
         -e 's|configureKotlinAndroid(this)|// configureKotlinAndroid(this)|g' \
